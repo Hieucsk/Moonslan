@@ -108,23 +108,26 @@
         .btn-stop { border-color: var(--neon-pink); color: var(--neon-pink); }
         .btn-reset { border-color: var(--neon-blue); color: var(--neon-blue); }
 
-        /* Các phần khác giữ nguyên */
         .progress-wrapper { margin-bottom: 15px; }
         .progress-label { display: flex; justify-content: space-between; font-size: 0.65rem; font-family: 'Orbitron'; margin-bottom: 5px; color: var(--text); }
         .progress-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
         .progress-fill { height: 100%; width: 0%; transition: width 1s ease-out; }
         .fill-week { background: linear-gradient(90deg, var(--neon-blue), var(--neon-green)); box-shadow: 0 0 10px var(--neon-blue); }
         .fill-month { background: linear-gradient(90deg, var(--neon-pink), var(--neon-yellow)); box-shadow: 0 0 10px var(--neon-pink); }
-        .roadmap-list { height: 480px; overflow-y: auto; padding-right: 10px; }
-        .roadmap-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 12px; }
+
         .resource-hub { display: flex; flex-direction: column; gap: 12px; }
         .quick-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 5px; }
         .link-category { font-family: 'Orbitron'; font-size: 0.55rem; color: var(--neon-yellow); opacity: 0.8; margin-top: 10px; border-left: 2px solid var(--neon-yellow); padding-left: 8px; line-height: 1;}
         .link-item { text-decoration: none; padding: 10px 5px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text); font-size: 0.58rem; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; }
         .link-item:hover { border-color: var(--neon-blue); color: var(--neon-blue); transform: translateY(-2px); background: rgba(0, 242, 255, 0.1); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.75rem; cursor: pointer; color: #64748b; }
         .m-pink { background: var(--neon-pink) !important; color: #fff !important; box-shadow: 0 0 10px var(--neon-pink); }
+
+        .roadmap-list { height: 480px; overflow-y: auto; padding-right: 10px; }
+        .roadmap-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 12px; }
+
         @media (max-width: 1100px) { .main-container { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -222,12 +225,29 @@
                     <input type="text" name="q" placeholder="Tìm kiến thức..." style="flex:1; background:transparent; border:1px solid var(--border); border-radius:10px; color:#fff; padding:8px; font-size: 0.75rem;">
                     <button type="submit" class="btn" style="padding:8px 12px; font-size:0.5rem; border-color:var(--neon-blue);">TÌM</button>
                 </form>
-                <div class="link-category">HỆ THỐNG HỌC TẬP</div>
+
+                <div class="link-category">HỆ THỐNG HỌC TẬP CỦA TÔI</div>
                 <div class="quick-links">
                     <a href="https://mapstudy.edu.vn" target="_blank" class="link-item">MAPSTUDY</a>
                     <a href="https://tenschool.vn" target="_blank" class="link-item">TENSCHOOL</a>
                     <a href="https://toiyeuhoahoc.com" target="_blank" class="link-item" style="color:var(--neon-pink); border-color:var(--neon-pink);">TYHH</a>
                     <a href="https://tailieuonthi.org" target="_blank" class="link-item" style="color:var(--neon-blue); border-color:var(--neon-blue);">TAILIEUONTHI</a>
+                </div>
+
+                <div class="link-category">HSA & PHÒNG THÍ NGHIỆM</div>
+                <div class="quick-links">
+                    <a href="https://docs.google.com/spreadsheets/d/18qov1FzYTm6A-yswR8RNXB17BanuLmX5dppUzv3vlF8/edit" target="_blank" class="link-item">📊 HSA SHEET</a>
+                    <a href="https://phet.colorado.edu/vi/simulations/filter?type=html,flash" target="_blank" class="link-item" style="color:var(--neon-green); border-color:var(--neon-green);">⚡ PHET SIMS</a>
+                    <a href="https://khaothi.vnu.edu.vn" target="_blank" class="link-item">CỔNG HSA</a>
+                    <a href="https://www.desmos.com/calculator" target="_blank" class="link-item">DESMOS</a>
+                </div>
+
+                <div class="link-category">AI CHIẾN THUẬT & TIỆN ÍCH</div>
+                <div class="quick-links">
+                    <a href="https://chatgpt.com" target="_blank" class="link-item">CHAT GPT</a>
+                    <a href="https://gemini.google.com" target="_blank" class="link-item">GEMINI</a>
+                    <a href="https://claude.ai" target="_blank" class="link-item">CLAUDE AI</a>
+                    <a href="https://www.perplexity.ai" target="_blank" class="link-item">PERPLEXITY</a>
                 </div>
             </div>
         </div>
@@ -303,7 +323,7 @@
         subContainer.appendChild(label);
     });
 
-    // --- FOCUS LOGIC (NEW) ---
+    // --- FOCUS LOGIC ---
     function setFocus(id, active) {
         const card = document.getElementById(id);
         if(active) { 
@@ -315,15 +335,8 @@
             allFocused.forEach(el => el.classList.remove('focused'));
         }
     }
-
-    function exitFocus() {
-        setFocus('', false);
-    }
-
-    // Lắng nghe phím ESC
-    document.addEventListener('keydown', (e) => {
-        if (e.key === "Escape") exitFocus();
-    });
+    function exitFocus() { setFocus('', false); }
+    document.addEventListener('keydown', (e) => { if (e.key === "Escape") exitFocus(); });
 
     // --- STOPWATCH ---
     let swI, swT = 0;
