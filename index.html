@@ -37,10 +37,11 @@
             min-height: 100vh; display: flex; flex-direction: column; align-items: center;
         }
 
+        /* OVERLAY KHI PHÓNG TO */
         #focus-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.92); backdrop-filter: blur(20px);
-            z-index: 99; display: none; opacity: 0;
+            background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(30px);
+            z-index: 99; display: none; opacity: 0; transition: opacity 0.5s;
         }
         body.focus-active #focus-overlay { display: block; opacity: 1; }
 
@@ -79,10 +80,12 @@
             margin-bottom: 25px; position: relative;
         }
         
+        /* HIỆU ỨNG PHÓNG TO CARD */
         .card.focused {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.4);
-            z-index: 100; width: 450px; border-color: var(--neon-blue);
-            box-shadow: 0 0 100px rgba(0, 242, 255, 0.3); background: #0b1224;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.8);
+            z-index: 100; width: 400px; border-color: var(--neon-blue);
+            box-shadow: 0 0 100px rgba(0, 242, 255, 0.4); background: #0b1224;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .title-h2 { 
@@ -92,14 +95,10 @@
         }
         .title-h2::before { content: ''; display: block; width: 4px; height: 15px; background: var(--neon-pink); border-radius: 2px; }
 
-        .progress-wrapper { margin-bottom: 15px; }
-        .progress-label { display: flex; justify-content: space-between; font-size: 0.65rem; font-family: 'Orbitron'; margin-bottom: 5px; color: var(--text); }
-        .progress-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
-        .progress-fill { height: 100%; width: 0%; transition: width 1s ease-out; }
-        .fill-week { background: linear-gradient(90deg, var(--neon-blue), var(--neon-green)); box-shadow: 0 0 10px var(--neon-blue); }
-        .fill-month { background: linear-gradient(90deg, var(--neon-pink), var(--neon-yellow)); box-shadow: 0 0 10px var(--neon-pink); }
-
-        .time-display { font-family: 'JetBrains Mono'; font-size: 3.2rem; text-align: center; margin: 15px 0; font-weight: 700; }
+        .time-display { 
+            font-family: 'JetBrains Mono'; font-size: 3.2rem; text-align: center; 
+            margin: 15px 0; font-weight: 700; cursor: zoom-in; 
+        }
         .sw-color { color: var(--neon-green); text-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
         .tm-color { color: var(--neon-yellow); text-shadow: 0 0 20px rgba(255, 240, 31, 0.4); }
 
@@ -109,25 +108,30 @@
         .btn-stop { border-color: var(--neon-pink); color: var(--neon-pink); }
         .btn-reset { border-color: var(--neon-blue); color: var(--neon-blue); }
 
+        /* Các phần khác giữ nguyên */
+        .progress-wrapper { margin-bottom: 15px; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.65rem; font-family: 'Orbitron'; margin-bottom: 5px; color: var(--text); }
+        .progress-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-fill { height: 100%; width: 0%; transition: width 1s ease-out; }
+        .fill-week { background: linear-gradient(90deg, var(--neon-blue), var(--neon-green)); box-shadow: 0 0 10px var(--neon-blue); }
+        .fill-month { background: linear-gradient(90deg, var(--neon-pink), var(--neon-yellow)); box-shadow: 0 0 10px var(--neon-pink); }
+        .roadmap-list { height: 480px; overflow-y: auto; padding-right: 10px; }
+        .roadmap-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 12px; }
         .resource-hub { display: flex; flex-direction: column; gap: 12px; }
         .quick-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 5px; }
         .link-category { font-family: 'Orbitron'; font-size: 0.55rem; color: var(--neon-yellow); opacity: 0.8; margin-top: 10px; border-left: 2px solid var(--neon-yellow); padding-left: 8px; line-height: 1;}
         .link-item { text-decoration: none; padding: 10px 5px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text); font-size: 0.58rem; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; }
         .link-item:hover { border-color: var(--neon-blue); color: var(--neon-blue); transform: translateY(-2px); background: rgba(0, 242, 255, 0.1); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
-
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.75rem; cursor: pointer; color: #64748b; }
         .m-pink { background: var(--neon-pink) !important; color: #fff !important; box-shadow: 0 0 10px var(--neon-pink); }
-
-        .roadmap-list { height: 480px; overflow-y: auto; padding-right: 10px; }
-        .roadmap-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 12px; }
-
         @media (max-width: 1100px) { .main-container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<div id="focus-overlay"></div>
+<div id="focus-overlay" onclick="exitFocus()"></div>
+
 <div class="header-section">
     <div id="sys-clock">SYSTEM ONLINE</div>
     <div class="quote-container">
@@ -145,7 +149,7 @@
 
         <div class="card" id="sw-card">
             <h2 class="title-h2">STOPWATCH</h2>
-            <div id="sw-display" class="time-display sw-color">00:00:00</div>
+            <div id="sw-display" class="time-display sw-color" onclick="setFocus('sw-card', true)">00:00:00</div>
             <div class="btn-group">
                 <button class="btn btn-start" onclick="startSW()">Bắt đầu</button>
                 <button class="btn btn-stop" onclick="stopSW()">Dừng</button>
@@ -158,7 +162,7 @@
             <div style="text-align:center; margin-bottom:10px; font-size:0.8rem; opacity:0.8;">
                 <input type="number" id="tm-min" value="45" style="width:50px; background:#000; border:1px solid #333; color:var(--neon-yellow); text-align:center; border-radius:5px;"> phút
             </div>
-            <div id="tm-display" class="time-display tm-color">45:00</div>
+            <div id="tm-display" class="time-display tm-color" onclick="setFocus('tm-card', true)">45:00</div>
             <div class="btn-group">
                 <button class="btn btn-start" onclick="startTM()">Kích hoạt</button>
                 <button class="btn btn-stop" onclick="stopTM()">Tạm dừng</button>
@@ -218,29 +222,12 @@
                     <input type="text" name="q" placeholder="Tìm kiến thức..." style="flex:1; background:transparent; border:1px solid var(--border); border-radius:10px; color:#fff; padding:8px; font-size: 0.75rem;">
                     <button type="submit" class="btn" style="padding:8px 12px; font-size:0.5rem; border-color:var(--neon-blue);">TÌM</button>
                 </form>
-
-                <div class="link-category">HỆ THỐNG HỌC TẬP CỦA TÔI</div>
+                <div class="link-category">HỆ THỐNG HỌC TẬP</div>
                 <div class="quick-links">
                     <a href="https://mapstudy.edu.vn" target="_blank" class="link-item">MAPSTUDY</a>
                     <a href="https://tenschool.vn" target="_blank" class="link-item">TENSCHOOL</a>
                     <a href="https://toiyeuhoahoc.com" target="_blank" class="link-item" style="color:var(--neon-pink); border-color:var(--neon-pink);">TYHH</a>
                     <a href="https://tailieuonthi.org" target="_blank" class="link-item" style="color:var(--neon-blue); border-color:var(--neon-blue);">TAILIEUONTHI</a>
-                </div>
-
-                <div class="link-category">HSA & PHÒNG THÍ NGHIỆM</div>
-                <div class="quick-links">
-                    <a href="https://docs.google.com/spreadsheets/d/18qov1FzYTm6A-yswR8RNXB17BanuLmX5dppUzv3vlF8/edit" target="_blank" class="link-item">📊 HSA SHEET</a>
-                    <a href="https://phet.colorado.edu/vi/simulations/filter?type=html,flash" target="_blank" class="link-item" style="color:var(--neon-green); border-color:var(--neon-green);">⚡ PHET SIMS</a>
-                    <a href="https://khaothi.vnu.edu.vn" target="_blank" class="link-item">CỔNG HSA</a>
-                    <a href="https://www.desmos.com/calculator" target="_blank" class="link-item">DESMOS</a>
-                </div>
-
-                <div class="link-category">AI CHIẾN THUẬT & TIỆN ÍCH</div>
-                <div class="quick-links">
-                    <a href="https://chatgpt.com" target="_blank" class="link-item">CHAT GPT</a>
-                    <a href="https://gemini.google.com" target="_blank" class="link-item">GEMINI</a>
-                    <a href="https://claude.ai" target="_blank" class="link-item">CLAUDE AI</a>
-                    <a href="https://www.perplexity.ai" target="_blank" class="link-item">PERPLEXITY</a>
                 </div>
             </div>
         </div>
@@ -277,7 +264,7 @@
     const savedQuote = localStorage.getItem('moonslan_custom_quote');
     if(savedQuote) document.getElementById('quote-display').innerText = savedQuote;
 
-    // --- PROGRESS CALCULATION ---
+    // --- PROGRESS & COUNTDOWN ---
     function updateProgress() {
         const totalSubs = subjects.length;
         const checkedSubs = Object.values(subMarks).filter(v => v === true).length;
@@ -292,8 +279,6 @@
         document.getElementById('month-pc').innerText = monthPercent + "%";
         document.getElementById('month-fill').style.width = monthPercent + "%";
     }
-
-    // --- COUNTDOWN ---
     const targetDates = { tn: new Date("2026-06-11T07:30:00"), hsa: new Date("2026-04-04T07:30:00") };
     function updCnd() {
         const n = new Date();
@@ -318,31 +303,49 @@
         subContainer.appendChild(label);
     });
 
-    // --- STOPWATCH & TIMER ---
+    // --- FOCUS LOGIC (NEW) ---
+    function setFocus(id, active) {
+        const card = document.getElementById(id);
+        if(active) { 
+            document.body.classList.add('focus-active'); 
+            card.classList.add('focused'); 
+        } else { 
+            document.body.classList.remove('focus-active'); 
+            const allFocused = document.querySelectorAll('.focused');
+            allFocused.forEach(el => el.classList.remove('focused'));
+        }
+    }
+
+    function exitFocus() {
+        setFocus('', false);
+    }
+
+    // Lắng nghe phím ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === "Escape") exitFocus();
+    });
+
+    // --- STOPWATCH ---
     let swI, swT = 0;
-    function startSW() { setFocus('sw-card', true); if(!swI) swI = setInterval(() => { swT++; renderSW(); }, 1000); }
+    function startSW() { if(!swI) swI = setInterval(() => { swT++; renderSW(); }, 1000); }
     function stopSW() { clearInterval(swI); swI = null; }
-    function resetSW() { stopSW(); swT = 0; renderSW(); setFocus('sw-card', false); }
+    function resetSW() { stopSW(); swT = 0; renderSW(); }
     function renderSW() {
         const h = Math.floor(swT/3600).toString().padStart(2,'0'), m = Math.floor((swT%3600)/60).toString().padStart(2,'0'), s = (swT%60).toString().padStart(2,'0');
         document.getElementById('sw-display').innerText = `${h}:${m}:${s}`;
     }
-    function setFocus(id, active) {
-        const card = document.getElementById(id);
-        if(active) { document.body.classList.add('focus-active'); card.classList.add('focused'); }
-        else { document.body.classList.remove('focus-active'); card.classList.remove('focused'); }
-    }
+
+    // --- TIMER ---
     let tmI, tmT = 0;
     function startTM() {
-        setFocus('tm-card', true);
         if (tmT <= 0) tmT = document.getElementById('tm-min').value * 60;
         if(!tmI) tmI = setInterval(() => { 
-            if (tmT <= 0) { clearInterval(tmI); tmI = null; alert("HẾT GIỜ!"); setFocus('tm-card', false); return; } 
+            if (tmT <= 0) { clearInterval(tmI); tmI = null; alert("HẾT GIỜ!"); return; } 
             tmT--; renderTM(); 
         }, 1000);
     }
     function stopTM() { clearInterval(tmI); tmI = null; }
-    function resetTM() { stopTM(); tmT = 0; document.getElementById('tm-display').innerText = document.getElementById('tm-min').value + ":00"; setFocus('tm-card', false); }
+    function resetTM() { stopTM(); tmT = 0; document.getElementById('tm-display').innerText = document.getElementById('tm-min').value + ":00"; }
     function renderTM() {
         const m = Math.floor(tmT/60).toString().padStart(2,'0'), s = (tmT%60).toString().padStart(2,'0');
         document.getElementById('tm-display').innerText = `${m}:${s}`;
