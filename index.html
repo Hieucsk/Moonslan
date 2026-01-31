@@ -148,6 +148,8 @@
 </head>
 <body>
 
+<audio id="alarm-sound" src="School Bell Sound Effect No Copyright - YouTube.mp3" preload="auto"></audio>
+
 <div id="focus-overlay" onclick="exitFocus()"></div>
 
 <div class="header-section">
@@ -347,16 +349,40 @@
     }
     function resetSW() { clearInterval(swI); swI = null; swT = 0; document.getElementById('sw-display').innerText = "00:00:00"; }
 
-    // --- TIMER ---
+    // --- TIMER VỚI CHUÔNG BÁO ---
     let tmI, tmT = 0;
+    const alarm = document.getElementById('alarm-sound');
+
     function startTM() {
+        // Mồi âm thanh để vượt qua chính sách autoplay của trình duyệt
+        alarm.play().then(() => {
+            alarm.pause();
+            alarm.currentTime = 0;
+        }).catch(() => { /* Chờ tương tác người dùng */ });
+
         if(tmT <= 0) tmT = document.getElementById('tm-min').value * 60;
-        if(!tmI) tmI = setInterval(() => { 
-            if(tmT <= 0) { clearInterval(tmI); tmI = null; alert("HẾT GIỜ!"); return; }
-            tmT--; document.getElementById('tm-display').innerText = `${Math.floor(tmT/60).toString().padStart(2,'0')}:${(tmT%60).toString().padStart(2,'0')}`; 
-        }, 1000);
+        if(!tmI) {
+            tmI = setInterval(() => { 
+                if(tmT <= 0) { 
+                    clearInterval(tmI); 
+                    tmI = null; 
+                    
+                    // Phát chuông báo khi hết giờ
+                    alarm.play(); 
+                    alert("THỜI GIAN CHIẾN THUẬT KẾT THÚC!"); 
+                    return; 
+                }
+                tmT--; 
+                document.getElementById('tm-display').innerText = `${Math.floor(tmT/60).toString().padStart(2,'0')}:${(tmT%60).toString().padStart(2,'0')}`; 
+            }, 1000);
+        }
     }
-    function stopTM() { clearInterval(tmI); tmI = null; }
+    function stopTM() { 
+        clearInterval(tmI); 
+        tmI = null; 
+        alarm.pause(); 
+        alarm.currentTime = 0; 
+    }
     function resetTM() { stopTM(); tmT = 0; document.getElementById('tm-display').innerText = document.getElementById('tm-min').value + ":00"; }
 
     // --- PROGRESS & CALENDAR ---
