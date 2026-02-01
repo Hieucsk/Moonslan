@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moonslan - Tactical Command V26.6</title>
+    <title>Moonslan - Tactical Command V26.6 (Persistent)</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -17,7 +17,7 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
-        /* CUSTOM SCROLLBAR CHÍNH */
+        /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, var(--neon-blue), var(--neon-pink)); border-radius: 10px; }
 
@@ -55,38 +55,16 @@
         }
         @keyframes shine { to { background-position: 200% center; } }
 
-        /* TACTICAL SEARCH BAR */
-        .search-wrapper {
-            max-width: 700px;
-            margin: 0 auto 40px auto;
-            position: relative;
-        }
+        .search-wrapper { max-width: 700px; margin: 0 auto 40px auto; position: relative; }
         #tactical-search {
-            width: 100%;
-            padding: 16px 60px 16px 25px;
-            background: rgba(13, 20, 38, 0.6);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--neon-blue);
-            border-radius: 12px;
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-            outline: none;
-            backdrop-filter: blur(10px);
+            width: 100%; padding: 16px 60px 16px 25px; background: rgba(13, 20, 38, 0.6);
+            border: 1px solid var(--border); border-left: 4px solid var(--neon-blue);
+            border-radius: 12px; color: var(--text); font-family: 'JetBrains Mono', monospace; outline: none; backdrop-filter: blur(10px);
         }
-        #tactical-search:focus {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-        }
-        .search-icon {
-            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-            color: var(--neon-blue); font-family: 'Orbitron'; font-weight: 900;
-            cursor: pointer; font-size: 0.8rem;
-        }
+        #tactical-search:focus { border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+        .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--neon-blue); font-family: 'Orbitron'; font-weight: 900; cursor: pointer; font-size: 0.8rem; }
 
-        .main-container { 
-            max-width: 1450px; margin: 0 auto;
-            display: grid; grid-template-columns: 350px 1fr 340px; gap: 25px; 
-        }
+        .main-container { max-width: 1450px; margin: 0 auto; display: grid; grid-template-columns: 350px 1fr 340px; gap: 25px; }
 
         .card { 
             background: var(--card-bg); border-radius: 24px; padding: 25px; 
@@ -115,17 +93,17 @@
         .btn { padding: 12px 18px; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); font-family: 'Orbitron'; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; background: rgba(0,0,0,0.3); color: #fff; }
 
         .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .sub-item { font-size: 0.8rem; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        /* Cải tiến sub-item: Hover đổi màu và gạch ngang chữ */
+        .sub-item { font-size: 0.8rem; display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px; border-radius: 8px; }
+        .sub-item:hover { background: rgba(255,255,255,0.05); }
+        .sub-item.checked span { text-decoration: line-through; opacity: 0.5; }
 
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-box { text-align: center; padding: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
         .stat-label { font-size: 0.55rem; font-family: 'Orbitron'; margin-bottom: 5px; opacity: 0.7; }
         .stat-val { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 1.1rem; }
 
-        .history-list { 
-            max-height: 200px; overflow-y: auto; font-size: 0.7rem; font-family: 'JetBrains Mono'; 
-            border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;
-        }
+        .history-list { max-height: 200px; overflow-y: auto; font-size: 0.7rem; font-family: 'JetBrains Mono'; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
         .history-item { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid rgba(255,255,255,0.03); }
 
         .link-category { font-family: 'Orbitron'; font-size: 0.55rem; color: var(--neon-yellow); opacity: 0.8; margin: 12px 0 8px 0; border-left: 2px solid var(--neon-yellow); padding-left: 8px; }
@@ -137,7 +115,9 @@
         .progress-fill { height: 100%; width: 0%; transition: width 1s ease-out; }
 
         .roadmap-list { height: 480px; overflow-y: auto; padding-right: 10px; }
-        .roadmap-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 12px; }
+        .roadmap-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .roadmap-item:hover { background: rgba(255,255,255,0.08); }
+        .roadmap-item.checked span { text-decoration: line-through; opacity: 0.5; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.75rem; cursor: pointer; color: #64748b; }
@@ -148,7 +128,7 @@
 </head>
 <body>
 
-<audio id="alarm-sound" src="School Bell Sound Effect No Copyright - YouTube.mp3" preload="auto"></audio>
+<audio id="alarm-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3" preload="auto"></audio>
 
 <div id="focus-overlay" onclick="exitFocus()"></div>
 
@@ -191,8 +171,8 @@
             <h2 class="title-h2">STOPWATCH</h2>
             <div id="sw-display" class="time-display sw-color" onclick="setFocus('sw-card', true)">00:00:00</div>
             <div class="btn-group">
-                <button class="btn" style="border-color:var(--neon-green); color:var(--neon-green);" onclick="startSW()">Bắt đầu</button>
-                <button class="btn" style="border-color:var(--neon-pink); color:var(--neon-pink);" onclick="stopSW()">Lưu</button>
+                <button class="btn" style="border-color:var(--neon-green); color:var(--neon-green);" onclick="startSW()">START</button>
+                <button class="btn" style="border-color:var(--neon-pink); color:var(--neon-pink);" onclick="stopSW()">STOP</button>
                 <button class="btn" style="border-color:var(--neon-blue); color:var(--neon-blue);" onclick="resetSW()">Reset</button>
             </div>
         </div>
@@ -221,7 +201,7 @@
             <div id="tm-display" class="time-display tm-color" onclick="setFocus('tm-card', true)">45:00</div>
             <div class="btn-group">
                 <button class="btn" style="border-color:var(--neon-yellow); color:var(--neon-yellow);" onclick="startTM()">Kích hoạt</button>
-                <button class="btn" onclick="stopTM()">Tạm dừng</button>
+                <button class="btn" onclick="stopTM()">Dừng chuông</button>
                 <button class="btn" onclick="resetTM()">Mới</button>
             </div>
         </div>
@@ -285,40 +265,58 @@
     const getTKey = () => { const d = new Date(); return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`; };
     setInterval(() => { document.getElementById('sys-clock').innerText = new Date().toLocaleString('vi-VN').toUpperCase(); }, 1000);
 
-    // --- SEARCH ENGINE ---
+    // --- SEARCH ---
     document.getElementById('tactical-search').addEventListener('keypress', (e) => { if (e.key === 'Enter') executeSearch(); });
     function executeSearch() {
         const input = document.getElementById('tactical-search');
         const query = input.value.trim();
         if (!query) return;
-        input.style.borderColor = 'var(--neon-green)';
-        setTimeout(() => {
-            const isUrl = query.includes('.') && !query.includes(' ');
-            if (isUrl) {
-                window.open(query.startsWith('http') ? query : 'https://' + query, '_blank');
-            } else {
-                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
-            }
-            input.style.borderColor = 'var(--neon-blue)';
-            input.value = '';
-        }, 200);
+        window.open(query.includes('.') && !query.includes(' ') ? (query.startsWith('http') ? query : 'https://' + query) : `https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+        input.value = '';
     }
 
-    // --- SUBJECTS ---
+    // --- SUBJECTS (OPTIMIZED: CLICK TEXT TO TOGGLE) ---
     const subjects = ["Toán Học", "Vật Lý", "Hóa Học", "Lịch Sử", "Ngữ Văn", "Tin Học"];
     let subMarks = get('moonslan_sub_marks');
     const subContainer = document.getElementById('subject-log');
+    
     subjects.forEach(s => {
-        const div = document.createElement('div'); div.className = 'sub-item';
-        const cb = document.createElement('input'); cb.type = "checkbox"; cb.checked = subMarks[s] || false;
-        cb.onchange = () => { subMarks[s] = cb.checked; save('moonslan_sub_marks', subMarks); updProgress(); };
-        div.appendChild(cb); div.append(s);
+        const div = document.createElement('div'); 
+        div.className = 'sub-item' + (subMarks[s] ? ' checked' : '');
+        
+        const cb = document.createElement('input'); 
+        cb.type = "checkbox"; 
+        cb.checked = subMarks[s] || false;
+        
+        // Chặn sự kiện nổi bọt khi click thẳng vào checkbox để tránh kích hoạt click của div 2 lần
+        cb.onclick = (e) => e.stopPropagation();
+        cb.onchange = () => {
+            subMarks[s] = cb.checked;
+            save('moonslan_sub_marks', subMarks);
+            div.classList.toggle('checked', cb.checked);
+            updProgress();
+        };
+
+        // Khi click vào cả vùng div (bao gồm chữ)
+        div.onclick = () => {
+            cb.checked = !cb.checked;
+            subMarks[s] = cb.checked;
+            save('moonslan_sub_marks', subMarks);
+            div.classList.toggle('checked', cb.checked);
+            updProgress();
+        };
+
+        div.appendChild(cb); 
+        const label = document.createElement('span');
+        label.innerText = s;
+        div.appendChild(label); 
         subContainer.appendChild(div);
     });
 
-    // --- STUDY LOGS ---
+    // --- LOGS ---
     let studyData = get('moonslan_study_logs');
     function fmtT(sec) {
+        if(sec < 0) sec = 0;
         const h = Math.floor(sec/3600).toString().padStart(2,'0'), m = Math.floor((sec%3600)/60).toString().padStart(2,'0'), s = (sec%60).toString().padStart(2,'0');
         return `${h}:${m}:${s}`;
     }
@@ -327,9 +325,8 @@
         const hist = document.getElementById('history-list'); hist.innerHTML = '';
         let weekTotal = 0;
         document.getElementById('today-time-display').innerText = fmtT(studyData[tk] || 0);
-        const sortedKeys = Object.keys(studyData).sort().reverse();
         const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        sortedKeys.forEach(k => {
+        Object.keys(studyData).sort().reverse().forEach(k => {
             if (new Date(k) >= sevenDaysAgo) weekTotal += studyData[k];
             hist.innerHTML += `<div class="history-item"><span>${k}</span><span style="color:var(--neon-yellow)">${fmtT(studyData[k])}</span></div>`;
         });
@@ -337,59 +334,82 @@
     }
 
     // --- STOPWATCH ---
-    let swI, swT = 0;
-    function startSW() { if(!swI) swI = setInterval(() => { swT++; document.getElementById('sw-display').innerText = fmtT(swT); }, 1000); }
+    let swI;
+    function startSW() {
+        if (!localStorage.getItem('sw_start_time')) {
+            localStorage.setItem('sw_start_time', Date.now());
+        }
+        if (!swI) swI = setInterval(updateSWUI, 1000);
+    }
+    function updateSWUI() {
+        const start = localStorage.getItem('sw_start_time');
+        if (start) {
+            const elapsed = Math.floor((Date.now() - parseInt(start)) / 1000);
+            document.getElementById('sw-display').innerText = fmtT(elapsed);
+        }
+    }
     function stopSW() {
-        clearInterval(swI); swI = null;
-        if(swT > 0) { 
-            const tk = getTKey(); studyData[tk] = (studyData[tk]||0) + swT; 
-            save('moonslan_study_logs', studyData); swT=0; updStudy(); 
-            document.getElementById('sw-display').innerText = "00:00:00"; 
+        clearInterval(swI); 
+        swI = null;
+    }
+    function resetSW() {
+        const start = localStorage.getItem('sw_start_time');
+        if (start) {
+            const elapsed = Math.floor((Date.now() - parseInt(start)) / 1000);
+            const tk = getTKey();
+            studyData[tk] = (studyData[tk] || 0) + elapsed;
+            save('moonslan_study_logs', studyData);
+            
+            localStorage.removeItem('sw_start_time');
+            clearInterval(swI); swI = null;
+            document.getElementById('sw-display').innerText = "00:00:00";
+            updStudy();
         }
     }
-    function resetSW() { clearInterval(swI); swI = null; swT = 0; document.getElementById('sw-display').innerText = "00:00:00"; }
 
-    // --- TIMER VỚI CHUÔNG BÁO ---
-    let tmI, tmT = 0;
+    // --- TIMER ---
+    let tmI;
     const alarm = document.getElementById('alarm-sound');
-
     function startTM() {
-        // Mồi âm thanh để vượt qua chính sách autoplay của trình duyệt
-        alarm.play().then(() => {
-            alarm.pause();
-            alarm.currentTime = 0;
-        }).catch(() => { /* Chờ tương tác người dùng */ });
-
-        if(tmT <= 0) tmT = document.getElementById('tm-min').value * 60;
-        if(!tmI) {
-            tmI = setInterval(() => { 
-                if(tmT <= 0) { 
-                    clearInterval(tmI); 
-                    tmI = null; 
-                    
-                    // Phát chuông báo khi hết giờ
-                    alarm.play(); 
-                    alert("THỜI GIAN CHIẾN THUẬT KẾT THÚC!"); 
-                    return; 
-                }
-                tmT--; 
-                document.getElementById('tm-display').innerText = `${Math.floor(tmT/60).toString().padStart(2,'0')}:${(tmT%60).toString().padStart(2,'0')}`; 
-            }, 1000);
+        let endTime = localStorage.getItem('tm_end_time');
+        if (!endTime) {
+            const mins = document.getElementById('tm-min').value;
+            endTime = Date.now() + (mins * 60 * 1000);
+            localStorage.setItem('tm_end_time', endTime);
+        }
+        if (!tmI) tmI = setInterval(updateTMUI, 1000);
+    }
+    function updateTMUI() {
+        const end = localStorage.getItem('tm_end_time');
+        if (end) {
+            const remain = Math.floor((parseInt(end) - Date.now()) / 1000);
+            if (remain <= 0) {
+                document.getElementById('tm-display').innerText = "00:00";
+                alarm.play();
+                clearInterval(tmI); tmI = null;
+                return;
+            }
+            const m = Math.floor(remain / 60).toString().padStart(2, '0');
+            const s = (remain % 60).toString().padStart(2, '0');
+            document.getElementById('tm-display').innerText = `${m}:${s}`;
         }
     }
-    function stopTM() { 
-        clearInterval(tmI); 
-        tmI = null; 
-        alarm.pause(); 
-        alarm.currentTime = 0; 
+    function stopTM() {
+        alarm.pause(); alarm.currentTime = 0;
+        clearInterval(tmI); tmI = null;
     }
-    function resetTM() { stopTM(); tmT = 0; document.getElementById('tm-display').innerText = document.getElementById('tm-min').value + ":00"; }
+    function resetTM() {
+        stopTM();
+        localStorage.removeItem('tm_end_time');
+        document.getElementById('tm-display').innerText = document.getElementById('tm-min').value + ":00";
+    }
 
     // --- PROGRESS & CALENDAR ---
     let cM = new Date().getMonth(), cY = new Date().getFullYear();
     let marks = get('moonslan_v25_marks');
     function updProgress() {
-        const subPC = Math.round((Object.values(subMarks).filter(v=>v).length / subjects.length) * 100) || 0;
+        const activeSubs = Object.values(subMarks).filter(v=>v).length;
+        const subPC = Math.round((activeSubs / subjects.length) * 100) || 0;
         document.getElementById('week-pc').innerText = subPC + "%";
         document.getElementById('week-fill').style.width = subPC + "%";
         const dInM = new Date(cY, cM + 1, 0).getDate();
@@ -414,15 +434,37 @@
     }
     function changeMonth(s) { cM += s; if(cM<0){cM=11;cY--;} if(cM>11){cM=0;cY++;} drawCal(); }
 
-    // --- ROADMAP ---
+    // --- ROADMAP (OPTIMIZED: CLICK TEXT TO TOGGLE) ---
     const sessions = ["Định vị HSA Sử", "Trật tự TG & CT Lạnh", "Chủ nghĩa XH (1917-nay)", "ASEAN & VN", "Cải cách/Đổi mới VN", "Chiến tranh giải phóng", "Cách mạng Tháng 8", "Kháng chiến Pháp", "Kháng chiến Mỹ", "Kinh tế Đổi mới", "Đối ngoại VN", "Hồ Chí Minh", "Biển đảo VN", "Văn minh Thế giới", "Cách mạng Tư sản", "Văn minh VN", "Lịch sử VN cận đại"];
     let roadMarks = get('moonslan_road_marks');
     const roadList = document.getElementById('roadmap-list');
+    
     sessions.forEach((s, i) => { 
-        const item = document.createElement('div'); item.className = 'roadmap-item';
-        const cb = document.createElement('input'); cb.type = "checkbox"; cb.checked = roadMarks[i] || false;
-        cb.onchange = () => { roadMarks[i] = cb.checked; save('moonslan_road_marks', roadMarks); };
-        item.appendChild(cb); item.innerHTML += `<span><b>Buổi ${i+1}:</b> ${s}</span>`;
+        const item = document.createElement('div'); 
+        item.className = 'roadmap-item' + (roadMarks[i] ? ' checked' : '');
+        
+        const cb = document.createElement('input'); 
+        cb.type = "checkbox"; 
+        cb.checked = roadMarks[i] || false;
+        
+        cb.onclick = (e) => e.stopPropagation();
+        cb.onchange = () => {
+            roadMarks[i] = cb.checked;
+            save('moonslan_road_marks', roadMarks);
+            item.classList.toggle('checked', cb.checked);
+        };
+
+        item.onclick = () => {
+            cb.checked = !cb.checked;
+            roadMarks[i] = cb.checked;
+            save('moonslan_road_marks', roadMarks);
+            item.classList.toggle('checked', cb.checked);
+        };
+
+        item.appendChild(cb); 
+        const txt = document.createElement('span');
+        txt.innerHTML = `<b>Buổi ${i+1}:</b> ${s}`;
+        item.appendChild(txt);
         roadList.appendChild(item);
     });
 
@@ -434,7 +476,6 @@
         document.getElementById('hsa-d').innerText = Math.max(0, Math.floor((targetDates.hsa - n) / 86400000));
     }
 
-    // --- UTILS ---
     function setFocus(id, active) {
         if(active) { document.body.classList.add('focus-active'); document.getElementById(id).classList.add('focused'); } 
         else { document.body.classList.remove('focus-active'); document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused')); }
@@ -442,9 +483,12 @@
     function exitFocus() { setFocus('', false); }
     function editQuote() { const n = prompt("Nhập châm ngôn:"); if(n) { document.getElementById('quote-display').innerText = n.toUpperCase(); localStorage.setItem('moonslan_custom_quote', n.toUpperCase()); } }
 
-    // INIT
+    // --- INIT ---
     updCnd(); drawCal(); updStudy();
     const sq = localStorage.getItem('moonslan_custom_quote'); if(sq) document.getElementById('quote-display').innerText = sq;
+    
+    if(localStorage.getItem('sw_start_time')) startSW();
+    if(localStorage.getItem('tm_end_time')) startTM();
 </script>
 </body>
 </html>
