@@ -187,15 +187,13 @@
         <div class="card" style="margin-bottom: 20px;">
             <h2 class="title-h2"><span>01</span> VISUAL MOTIVATION</h2>
             <div class="video-container" onclick="openTheater()">
-                <div class="video-tag" id="video-info">NẠP VIDEO →</div>
+                <div class="video-tag" id="video-info">VIDEO LOADING...</div>
                 <video id="main-video" autoplay muted loop playsinline></video>
                 <div class="video-overlay"><span class="play-btn">▶</span></div>
             </div>
             <div class="video-nav">
                 <button class="btn" onclick="prevVideo()" style="flex:1">BACK</button>
                 <button class="btn" onclick="nextVideo()" style="flex:1">NEXT</button>
-                <button class="btn" onclick="triggerFileInput()" title="Nạp video từ thư mục">+</button>
-                <input type="file" id="video-loader" multiple accept="video/mp4" style="display:none">
             </div>
             <div id="subject-log" class="grid-2"></div>
         </div>
@@ -327,7 +325,7 @@
         <div class="card">
             <h2 class="title-h2"><span>08</span> EXTERNAL LINKS</h2>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="#" target="_blank" class="link-card" style="border-color: var(--neon-pink);"><i>📊</i> <b>PERSONAL DATA</b></a>
+                <a href="https://docs.google.com/spreadsheets/d/18qov1FzYTm6A-yswR8RNXB17BanuLmX5dppUzv3vlF8/edit?gid=0#gid=0" target="_blank" class="link-card" style="border-color: var(--neon-pink);"><i>📊</i> <b>HSA SHEET</b></a>
                 <a href="https://khaothi.vnu.edu.vn" target="_blank" class="link-card"><i>🔵</i> HSA VNU Portal</a>
                 <a href="https://mapstudy.edu.vn" target="_blank" class="link-card"><i>📚</i> MapStudy</a>
                 <a href="https://tenschool.vn" target="_blank" class="link-card"><i>🔢</i> TenSchool</a>
@@ -351,187 +349,107 @@
         }
     };
 
-    // --- VIDEO SYSTEM (QUÉT CỤC BỘ) ---
-    let localVideos = []; // Lưu các URL blob tạm thời
+    // --- VIDEO SYSTEM (AUTO FROM GITHUB) ---
+    const playlist = ["1.mp4", "2.mp4", "3.mp4", "4.mp4", "5.mp4", "6.mp4", "7.mp4", "8.mp4", "9.mp4", "10.mp4", "11.mp4", "12.mp4", "13.mp4"];
     let vIdx = 0;
-
-    function triggerFileInput() { document.getElementById('video-loader').click(); }
-
-    document.getElementById('video-loader').onchange = function(e) {
-        const files = Array.from(e.target.files);
-        // Sắp xếp theo tên 1, 2, 3...
-        files.sort((a, b) => {
-            const numA = parseInt(a.name.split('.')[0]);
-            const numB = parseInt(b.name.split('.')[0]);
-            return numA - numB;
-        });
-
-        localVideos = files.map(file => URL.createObjectURL(file));
-        if(localVideos.length > 0) {
-            vIdx = 0;
-            updateVideo();
-        }
-    };
-
     function updateVideo() {
-        if (localVideos.length === 0) return;
-        const v = document.getElementById('main-video');
-        const tv = document.getElementById('theater-video');
+        const v = document.getElementById('main-video'), tv = document.getElementById('theater-video');
         const info = document.getElementById('video-info');
-        
-        v.src = localVideos[vIdx];
-        tv.src = localVideos[vIdx];
-        info.innerText = `TRACK ${vIdx + 1}/${localVideos.length}`;
-        
-        v.play().catch(() => console.log("User interaction needed"));
+        v.src = playlist[vIdx]; tv.src = playlist[vIdx];
+        info.innerText = `TRACK ${vIdx + 1}/${playlist.length}`;
+        v.play().catch(() => console.log("User interaction required"));
         if (document.getElementById('theater-mode').classList.contains('active')) tv.play();
     }
-
-    function nextVideo() { if(localVideos.length) { vIdx = (vIdx + 1) % localVideos.length; updateVideo(); } }
-    function prevVideo() { if(localVideos.length) { vIdx = (vIdx - 1 + localVideos.length) % localVideos.length; updateVideo(); } }
+    function nextVideo() { vIdx = (vIdx + 1) % playlist.length; updateVideo(); }
+    function prevVideo() { vIdx = (vIdx - 1 + playlist.length) % playlist.length; updateVideo(); }
     function openTheater() { document.getElementById('theater-mode').classList.add('active'); document.getElementById('theater-video').play(); }
     function closeTheater() { document.getElementById('theater-mode').classList.remove('active'); document.getElementById('theater-video').pause(); }
 
-    // --- UTILS ---
-    const getToday = () => new Date().toLocaleDateString('sv-SE');
-    const formatTime = (s) => {
+    // --- STOPWATCH & POMODORO ---
+    let swActive = false, swInterval = null, swStartTime = 0, swBaseTime = db.get('sw_base', 0);
+    function toggleSW() {
+        const btn = document.getElementById('sw-start-btn');
+        if (!swActive) {
+            swActive = true; swStartTime = Date.now();
+            swInterval = setInterval(updateSWDisplay, 100);
+            btn.innerText = "DỪNG"; btn.style.borderColor = "var(--neon-yellow)";
+        } else {
+            swActive = false; clearInterval(swInterval);
+            swBaseTime += (Date.now() - swStartTime);
+            db.save('sw_base', swBaseTime);
+            btn.innerText = "TIẾP TỤC"; btn.style.borderColor = "var(--neon-blue)";
+        }
+    }
+    function formatTime(s) {
         const h = Math.floor(s / 3600).toString().padStart(2, '0');
         const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
         const sec = (s % 60).toString().padStart(2, '0');
         return `${h}:${m}:${sec}`;
-    };
-
-    // --- STOPWATCH SYSTEM ---
-    let swActive = false;
-    let swInterval = null;
-    let swStartTime = 0;
-    let swBaseTime = db.get('sw_base', 0);
-
-    function toggleSW() {
-        const btn = document.getElementById('sw-start-btn');
-        if (!swActive) {
-            swActive = true;
-            swStartTime = Date.now();
-            swInterval = setInterval(updateSWDisplay, 100);
-            btn.innerText = "DỪNG";
-            btn.style.borderColor = "var(--neon-yellow)";
-        } else {
-            swActive = false;
-            clearInterval(swInterval);
-            swBaseTime += (Date.now() - swStartTime);
-            db.save('sw_base', swBaseTime);
-            btn.innerText = "TIẾP TỤC";
-            btn.style.borderColor = "var(--neon-blue)";
-        }
     }
-
     function updateSWDisplay() {
-        let currentTotal = swBaseTime;
-        if (swActive) currentTotal += (Date.now() - swStartTime);
-        const seconds = Math.floor(currentTotal / 1000);
-        document.getElementById('sw-display').innerText = formatTime(seconds);
+        let currentTotal = swBaseTime; if (swActive) currentTotal += (Date.now() - swStartTime);
+        document.getElementById('sw-display').innerText = formatTime(Math.floor(currentTotal / 1000));
         if(document.body.classList.contains('focus-active')) updateFocusDisplay();
     }
-
     function saveStudyLog() {
         if (swActive) toggleSW();
-        const totalSec = Math.floor(swBaseTime / 1000);
-        if (totalSec <= 0) return;
-        const today = getToday();
+        const totalSec = Math.floor(swBaseTime / 1000); if (totalSec <= 0) return;
+        const today = new Date().toLocaleDateString('sv-SE');
         let logs = db.get('study_logs', {});
         logs[today] = (logs[today] || 0) + totalSec;
-        db.save('study_logs', logs);
-        swBaseTime = 0;
-        db.save('sw_base', 0);
+        db.save('study_logs', logs); swBaseTime = 0; db.save('sw_base', 0);
         document.getElementById('sw-display').innerText = "00:00:00";
-        document.getElementById('sw-start-btn').innerText = "BẮT ĐẦU";
-        renderStats();
+        document.getElementById('sw-start-btn').innerText = "BẮT ĐẦU"; renderStats();
     }
 
-    // --- POMODORO SYSTEM ---
-    let tmInterval = null;
-    let tmRemaining = 0;
-    let tmIsRunning = false;
-
+    let tmInterval = null, tmRemaining = 0, tmIsRunning = false;
     function toggleTM() {
         const btn = document.getElementById('tm-start-btn');
         if (!tmIsRunning) {
             if (tmRemaining <= 0) tmRemaining = document.getElementById('tm-min').value * 60;
-            tmIsRunning = true;
-            btn.innerText = "DỪNG";
+            tmIsRunning = true; btn.innerText = "DỪNG";
             tmInterval = setInterval(() => {
-                if (tmRemaining > 0) {
-                    tmRemaining--;
-                    renderTM();
-                } else {
-                    clearInterval(tmInterval);
-                    tmIsRunning = false;
-                    document.getElementById('alarm-sound').play();
-                    btn.innerText = "CHẠY";
-                    alert("Hoàn thành phiên học!");
-                }
+                if (tmRemaining > 0) { tmRemaining--; renderTM(); }
+                else { clearInterval(tmInterval); tmIsRunning = false; document.getElementById('alarm-sound').play(); btn.innerText = "CHẠY"; alert("Hoàn thành phiên học!"); }
             }, 1000);
-        } else {
-            clearInterval(tmInterval);
-            tmIsRunning = false;
-            btn.innerText = "TIẾP TỤC";
-        }
+        } else { clearInterval(tmInterval); tmIsRunning = false; btn.innerText = "TIẾP TỤC"; }
     }
-
     function renderTM() {
         const m = Math.floor(tmRemaining / 60).toString().padStart(2, '0');
         const s = (tmRemaining % 60).toString().padStart(2, '0');
         document.getElementById('tm-display').innerText = `${m}:${s}`;
         if(document.body.classList.contains('focus-active')) updateFocusDisplay();
     }
+    function resetTM() { clearInterval(tmInterval); tmIsRunning = false; tmRemaining = document.getElementById('tm-min').value * 60; renderTM(); document.getElementById('tm-start-btn').innerText = "CHẠY"; }
 
-    function resetTM() {
-        clearInterval(tmInterval);
-        tmIsRunning = false;
-        tmRemaining = document.getElementById('tm-min').value * 60;
-        renderTM();
-        document.getElementById('tm-start-btn').innerText = "CHẠY";
-    }
-
-    // --- STATS ANALYTICS ---
     function renderStats() {
-        const logs = db.get('study_logs', {});
-        const body = document.getElementById('stats-body');
+        const logs = db.get('study_logs', {}), body = document.getElementById('stats-body');
         body.innerHTML = '';
-        const sorted = Object.keys(logs).sort((a, b) => new Date(b) - new Date(a));
-        sorted.forEach(date => {
+        Object.keys(logs).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td class="label-dim">${date}</td><td class="value-neon">${formatTime(logs[date])}</td>`;
             body.appendChild(tr);
         });
     }
 
-    // --- CALENDAR SYSTEM ---
+    // --- CALENDAR ---
     let curM = new Date().getMonth(), curY = new Date().getFullYear();
     function drawCal() {
-        const marks = db.get('cal_marks', {});
-        const box = document.getElementById('cal-grid'); box.innerHTML = '';
+        const marks = db.get('cal_marks', {}), box = document.getElementById('cal-grid'); box.innerHTML = '';
         document.getElementById('cal-title').innerText = `THÁNG ${curM + 1} / ${curY}`;
-        const firstDay = new Date(curY, curM, 1).getDay();
-        const daysInMonth = new Date(curY, curM + 1, 0).getDate();
+        const firstDay = new Date(curY, curM, 1).getDay(), daysInMonth = new Date(curY, curM + 1, 0).getDate();
         for (let i = 0; i < firstDay; i++) box.innerHTML += '<div></div>';
         for (let i = 1; i <= daysInMonth; i++) {
-            const key = `${curY}-${curM + 1}-${i}`;
-            const dayEl = document.createElement('div');
-            dayEl.className = 'cal-day';
+            const key = `${curY}-${curM + 1}-${i}`, dayEl = document.createElement('div');
+            dayEl.className = 'cal-day'; dayEl.innerText = i;
             dayEl.style = `font-size:0.7rem; aspect-ratio:1; display:grid; place-items:center; cursor:pointer; border-radius:6px; background:${marks[key] ? 'var(--neon-pink)' : 'rgba(255,255,255,0.05)'}`;
-            dayEl.innerText = i;
             dayEl.onclick = () => { marks[key] = !marks[key]; db.save('cal_marks', marks); drawCal(); };
             box.appendChild(dayEl);
         }
-        const count = Object.keys(marks).filter(k => k.startsWith(`${curY}-${curM + 1}-`)).length;
-        const rate = Math.round((count / daysInMonth) * 100) || 0;
-        document.getElementById('month-pc').innerText = rate + "%";
-        document.getElementById('month-fill').style.width = rate + "%";
     }
     function changeMonth(v) { curM += v; if (curM < 0) { curM = 11; curY--; } if (curM > 11) { curM = 0; curY++; } drawCal(); }
 
-    // --- MISSION & TARGET ---
+    // --- MISSIONS ---
     let todos = db.get('todos', []);
     function addTodo() {
         const input = document.getElementById('todo-input');
@@ -540,39 +458,50 @@
     function renderTodos() {
         const list = document.getElementById('todo-list'); list.innerHTML = '';
         todos.forEach((t, i) => {
-            const d = document.createElement('div');
-            d.className = `todo-item ${t.done ? 'done' : ''}`;
+            const d = document.createElement('div'); d.className = `todo-item ${t.done ? 'done' : ''}`;
             d.innerHTML = `<span style="flex:1">${t.txt}</span><small onclick="deleteTodo(event, ${i})">✕</small>`;
-            d.onclick = () => { todos[i].done = !todos[i].done; renderTodos(); };
-            list.appendChild(d);
+            d.onclick = () => { todos[i].done = !todos[i].done; renderTodos(); }; list.appendChild(d);
         });
         db.save('todos', todos);
     }
     function deleteTodo(e, i) { e.stopPropagation(); todos.splice(i, 1); renderTodos(); }
 
+    // --- ROADMAP (FIXED) ---
+    const roadmapData = ["Tư duy định lượng", "Tư duy định tính", "Giải quyết vấn đề", "Tổng ôn Lý 11-12", "Cấu trúc dữ liệu", "Lập trình C++/Python", "Đề luyện HSA 01", "Đề luyện HSA 02", "Tối ưu hóa điểm số", "Chiến thuật phòng thi"];
+    function renderRoadmap() {
+        const roadMarks = db.get('road_marks', {});
+        const roadBox = document.getElementById('roadmap-list');
+        roadBox.innerHTML = '';
+        roadmapData.forEach((task, index) => {
+            const item = document.createElement('div');
+            item.className = `todo-item ${roadMarks[index] ? 'done' : ''}`;
+            item.innerHTML = `<span style="font-size:0.65rem">B${index+1}: ${task}</span>`;
+            item.onclick = () => {
+                roadMarks[index] = !roadMarks[index];
+                db.save('road_marks', roadMarks);
+                renderRoadmap();
+            };
+            roadBox.appendChild(item);
+        });
+    }
+
     // --- FOCUS MODE ---
     function toggleFocus(on) {
         const b = document.getElementById('main-body');
-        if (on) { b.classList.add('focus-active'); updateFocusDisplay(); }
-        else b.classList.remove('focus-active');
+        if (on) { b.classList.add('focus-active'); updateFocusDisplay(); } else b.classList.remove('focus-active');
     }
     function updateFocusDisplay() {
         const big = document.getElementById('focus-timer-big'), lbl = document.getElementById('focus-mode-label');
         if (tmIsRunning) {
-            const m = Math.floor(tmRemaining / 60).toString().padStart(2, '0');
-            const s = (tmRemaining % 60).toString().padStart(2, '0');
-            big.innerText = `${m}:${s}`;
-            big.style.color = "var(--neon-yellow)";
-            lbl.innerText = "POMODORO RUNNING";
+            const m = Math.floor(tmRemaining / 60).toString().padStart(2, '0'), s = (tmRemaining % 60).toString().padStart(2, '0');
+            big.innerText = `${m}:${s}`; lbl.innerText = "POMODORO RUNNING";
         } else {
             let cur = swBaseTime; if (swActive) cur += (Date.now() - swStartTime);
-            big.innerText = formatTime(Math.floor(cur / 1000));
-            big.style.color = "var(--neon-blue)";
-            lbl.innerText = "DEEP WORK MODE";
+            big.innerText = formatTime(Math.floor(cur / 1000)); lbl.innerText = "DEEP WORK MODE";
         }
     }
 
-    // --- INITIALIZATION ---
+    // --- INITIALIZE ---
     function init() {
         setInterval(() => {
             const n = new Date();
@@ -597,38 +526,23 @@
             }
         };
 
-        renderTodos(); drawCal(); renderStats(); updateSWDisplay();
+        renderTodos(); drawCal(); renderStats(); updateSWDisplay(); updateVideo(); renderRoadmap();
         document.getElementById('scratchpad').value = db.get('scratch', '');
         document.getElementById('scratchpad').oninput = (e) => db.save('scratch', e.target.value);
         document.getElementById('quote-display').innerText = db.get('quote', 'KỶ LUẬT LÀ SỨC MẠNH');
 
         const subjects = ["Toán Học", "Vật Lý", "Hóa Học", "Tin Học", "Ngữ Văn", "Tiếng Anh"];
-        const subMarks = db.get('sub_marks', {});
-        const subBox = document.getElementById('subject-log');
+        const subMarks = db.get('sub_marks', {}), subBox = document.getElementById('subject-log');
         subjects.forEach(s => {
-            const d = document.createElement('div');
-            d.className = `todo-item ${subMarks[s] ? 'done' : ''}`;
+            const d = document.createElement('div'); d.className = `todo-item ${subMarks[s] ? 'done' : ''}`;
             d.innerHTML = `<span style="font-size:0.7rem">${s}</span>`;
-            d.onclick = () => { subMarks[s] = !subMarks[s]; db.save('sub_marks', subMarks); d.classList.toggle('done'); };
-            subBox.appendChild(d);
-        });
-
-        const road = ["Tư duy định lượng", "Tư duy định tính", "Giải quyết vấn đề", "Tổng ôn Lý 11-12", "Cấu trúc dữ liệu", "Lập trình C++/Python", "Đề luyện HSA 01", "Đề luyện HSA 02", "Tối ưu hóa điểm số", "Chiến thuật phòng thi"];
-        const roadMarks = db.get('road_marks', []);
-        const roadBox = document.getElementById('roadmap-list');
-        road.forEach((s, i) => {
-            const d = document.createElement('div');
-            d.className = `todo-item ${roadMarks[i] ? 'done' : ''}`;
-            d.innerHTML = `<span style="font-size:0.65rem">B${i+1}: ${s}</span>`;
-            d.onclick = () => { roadMarks[i] = !roadMarks[i]; db.save('road_marks', roadMarks); d.classList.toggle('done'); };
-            roadBox.appendChild(d);
+            d.onclick = () => { subMarks[s] = !subMarks[s]; db.save('sub_marks', subMarks); d.classList.toggle('done'); }; subBox.appendChild(d);
         });
     }
 
     function adjustZoom(d) {
         let z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--zoom-level'));
-        z = Math.min(Math.max(0.5, z + d), 1.3);
-        document.documentElement.style.setProperty('--zoom-level', z);
+        z = Math.min(Math.max(0.5, z + d), 1.3); document.documentElement.style.setProperty('--zoom-level', z);
     }
     function resetZoom() { document.documentElement.style.setProperty('--zoom-level', 1); }
     function editQuote() { const r = prompt("Châm ngôn mới:"); if(r) { document.getElementById('quote-display').innerText = r.toUpperCase(); db.save('quote', r.toUpperCase()); } }
