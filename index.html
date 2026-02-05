@@ -105,12 +105,15 @@
         }
         .btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
 
+        .target-input {
+            background: transparent; border: none; color: var(--neon-blue); text-align: right; outline: none; width: 80px; font-family: 'JetBrains Mono'; font-weight: bold; border-bottom: 1px solid transparent;
+        }
+        .target-input:focus { border-bottom: 1px solid var(--neon-pink); }
+
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
         .link-card {
-            background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;
-            text-decoration: none; color: var(--text); font-size: 0.75rem;
-            border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px;
+            background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; text-decoration: none; color: var(--text); font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px;
         }
         .link-card:hover { border-color: var(--neon-pink); background: rgba(255,0,122,0.1); }
 
@@ -127,6 +130,10 @@
         .video-container:hover .video-overlay { opacity: 1; }
         .play-btn { font-size: 3rem; color: white; filter: drop-shadow(0 0 10px var(--neon-blue)); }
         .video-nav { display: flex; gap: 5px; margin-bottom: 15px; }
+        .video-tag {
+            position: absolute; top: 10px; right: 10px; background: var(--neon-pink);
+            padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 0.6rem; z-index: 10;
+        }
 
         /* THEATER MODE */
         #theater-mode {
@@ -183,14 +190,14 @@
         <div class="card" style="margin-bottom: 20px;">
             <h2 class="title-h2"><span>01</span> VISUAL MOTIVATION</h2>
             <div class="video-container" onclick="openTheater()">
-                <video id="main-video" autoplay muted loop playsinline>
-                    <source src="https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-city-street-at-night-4013-large.mp4" type="video/mp4">
-                </video>
+                <div class="video-tag" id="video-info">SCANNING...</div>
+                <video id="main-video" autoplay muted loop playsinline></video>
                 <div class="video-overlay"><span class="play-btn">▶</span></div>
             </div>
             <div class="video-nav">
                 <button class="btn" onclick="prevVideo()" style="flex:1">BACK</button>
                 <button class="btn" onclick="nextVideo()" style="flex:1">NEXT</button>
+                <button class="btn" onclick="scanVideos()" title="Quét lại thư mục">↻</button>
             </div>
             <div id="subject-log" class="grid-2"></div>
         </div>
@@ -286,7 +293,7 @@
         </div>
 
         <div class="card">
-            <h2 class="title-h2"><span>05</span> LỘ TRÌNH ÔN THI HSA LỊCH SỬ</h2>
+            <h2 class="title-h2"><span>05</span> LỘ TRÌNH ÔN THI</h2>
             <div id="roadmap-list" style="max-height: 220px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;"></div>
         </div>
     </div>
@@ -295,9 +302,18 @@
         <div class="card" style="margin-bottom: 20px;">
             <h2 class="title-h2"><span>06</span> TARGET SCORE</h2>
             <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; font-family:'JetBrains Mono'; font-size: 0.8rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>ĐIỂM HSA:</span><input type="text" id="target-hsa" class="target-input" value="100+"></div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>TOÁN:</span><input type="text" id="target-math" class="target-input" value="9.0"></div>
-                <div style="display: flex; justify-content: space-between;"><span>LỊCH SỬ:</span><input type="text" id="target-history" class="target-input" value="9.5"></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span>ĐIỂM HSA:</span><input type="text" id="target-hsa" class="target-input" value="100+">
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span>TOÁN:</span><input type="text" id="target-math" class="target-input" value="9.0">
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span>VẬT LÝ:</span><input type="text" id="target-physics" class="target-input" value="9.0">
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>TIN HỌC:</span><input type="text" id="target-it" class="target-input" value="9.0">
+                </div>
             </div>
         </div>
 
@@ -337,6 +353,56 @@
         }
     };
 
+    // --- VIDEO AUTO-DETECTION SYSTEM (NEW INTEGRATION) ---
+    let playlist = [];
+    let vIdx = 0;
+
+    async function scanVideos() {
+        playlist = [];
+        let i = 1;
+        const info = document.getElementById('video-info');
+        info.innerText = "SCANNING...";
+
+        // Thử quét các file từ 1.mp4 đến 50.mp4 trong thư mục
+        while (i <= 50) {
+            const fileName = `${i}.mp4`;
+            try {
+                const response = await fetch(fileName, { method: 'HEAD' });
+                if (response.ok) {
+                    playlist.push(fileName);
+                    i++;
+                } else { break; }
+            } catch (e) { break; }
+        }
+
+        if (playlist.length > 0) {
+            updateVideo();
+        } else {
+            // Dự phòng nếu không tìm thấy file nào trong thư mục thì dùng link mẫu
+            playlist = ["https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-city-street-at-night-4013-large.mp4"];
+            updateVideo();
+            info.innerText = "NO LOCAL MP4";
+        }
+    }
+
+    function updateVideo() {
+        if (playlist.length === 0) return;
+        const v = document.getElementById('main-video');
+        const tv = document.getElementById('theater-video');
+        const info = document.getElementById('video-info');
+        
+        v.src = playlist[vIdx];
+        tv.src = playlist[vIdx];
+        info.innerText = `TRACK ${vIdx + 1}/${playlist.length}`;
+        v.play().catch(() => {});
+        if (document.getElementById('theater-mode').classList.contains('active')) tv.play();
+    }
+
+    function nextVideo() { if(playlist.length > 0) { vIdx = (vIdx + 1) % playlist.length; updateVideo(); } }
+    function prevVideo() { if(playlist.length > 0) { vIdx = (vIdx - 1 + playlist.length) % playlist.length; updateVideo(); } }
+    function openTheater() { document.getElementById('theater-mode').classList.add('active'); document.getElementById('theater-video').play(); }
+    function closeTheater() { document.getElementById('theater-mode').classList.remove('active'); document.getElementById('theater-video').pause(); }
+
     // --- UTILS ---
     const getToday = () => new Date().toLocaleDateString('sv-SE');
     const formatTime = (s) => {
@@ -346,11 +412,11 @@
         return `${h}:${m}:${sec}`;
     };
 
-    // --- STOPWATCH SYSTEM (FIXED & SYNCED) ---
+    // --- STOPWATCH SYSTEM ---
     let swActive = false;
     let swInterval = null;
     let swStartTime = 0;
-    let swBaseTime = db.get('sw_base', 0); // Thời gian đã tích lũy trước đó
+    let swBaseTime = db.get('sw_base', 0);
 
     function toggleSW() {
         const btn = document.getElementById('sw-start-btn');
@@ -382,13 +448,10 @@
         if (swActive) toggleSW();
         const totalSec = Math.floor(swBaseTime / 1000);
         if (totalSec <= 0) return;
-
         const today = getToday();
         let logs = db.get('study_logs', {});
         logs[today] = (logs[today] || 0) + totalSec;
         db.save('study_logs', logs);
-
-        // Reset SW
         swBaseTime = 0;
         db.save('sw_base', 0);
         document.getElementById('sw-display').innerText = "00:00:00";
@@ -462,7 +525,6 @@
         document.getElementById('cal-title').innerText = `THÁNG ${curM + 1} / ${curY}`;
         const firstDay = new Date(curY, curM, 1).getDay();
         const daysInMonth = new Date(curY, curM + 1, 0).getDate();
-        
         for (let i = 0; i < firstDay; i++) box.innerHTML += '<div></div>';
         for (let i = 1; i <= daysInMonth; i++) {
             const key = `${curY}-${curM + 1}-${i}`;
@@ -473,31 +535,12 @@
             dayEl.onclick = () => { marks[key] = !marks[key]; db.save('cal_marks', marks); drawCal(); };
             box.appendChild(dayEl);
         }
-
         const count = Object.keys(marks).filter(k => k.startsWith(`${curY}-${curM + 1}-`)).length;
         const rate = Math.round((count / daysInMonth) * 100) || 0;
         document.getElementById('month-pc').innerText = rate + "%";
         document.getElementById('month-fill').style.width = rate + "%";
     }
     function changeMonth(v) { curM += v; if (curM < 0) { curM = 11; curY--; } if (curM > 11) { curM = 0; curY++; } drawCal(); }
-
-    // --- VIDEO SYSTEM ---
-    const playlist = [
-        "https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-city-street-at-night-4013-large.mp4",
-        "https://assets.mixkit.co/videos/preview/mixkit-animation-of-a-futuristic-city-with-neon-lights-40130-large.mp4",
-        "https://v.ftcdn.net/05/56/15/48/700_F_556154884_P5Wd70M6rYF0p0Z9XW9A0D0Z7E0H0vXF_ST.mp4",
-        "https://v.ftcdn.net/02/93/29/74/700_F_293297492_jP5O8I0P6G3N9Z3S6S0J6D0Z1T0L5G2N_ST.mp4"
-    ];
-    let vIdx = 0;
-    function updateVideo() {
-        const v = document.getElementById('main-video'), tv = document.getElementById('theater-video');
-        v.src = playlist[vIdx]; tv.src = playlist[vIdx];
-        v.play(); if (document.getElementById('theater-mode').classList.contains('active')) tv.play();
-    }
-    function nextVideo() { vIdx = (vIdx + 1) % playlist.length; updateVideo(); }
-    function prevVideo() { vIdx = (vIdx - 1 + playlist.length) % playlist.length; updateVideo(); }
-    function openTheater() { document.getElementById('theater-mode').classList.add('active'); document.getElementById('theater-video').play(); }
-    function closeTheater() { document.getElementById('theater-mode').classList.remove('active'); document.getElementById('theater-video').pause(); }
 
     // --- MISSION & TARGET ---
     let todos = db.get('todos', []);
@@ -555,10 +598,12 @@
         document.getElementById('hsa-d-center').innerText = Math.max(0, Math.ceil((new Date("2026-04-05") - n) / 86400000));
 
         // Load Targets
-        ['hsa', 'math', 'history'].forEach(id => {
+        ['hsa', 'math', 'physics', 'it'].forEach(id => {
             const el = document.getElementById('target-' + id);
-            el.value = db.get('target_' + id, el.value);
-            el.oninput = () => db.save('target_' + id, el.value);
+            if(el) {
+                el.value = db.get('target_' + id, el.value);
+                el.oninput = () => db.save('target_' + id, el.value);
+            }
         });
 
         // Search
@@ -570,19 +615,18 @@
             }
         };
 
-        // Render others
         renderTodos();
         drawCal();
         renderStats();
         updateSWDisplay();
+        scanVideos(); // Khởi chạy tính năng quét video
 
-        // Roadmap & Scratchpad
         document.getElementById('scratchpad').value = db.get('scratch', '');
         document.getElementById('scratchpad').oninput = (e) => db.save('scratch', e.target.value);
         document.getElementById('quote-display').innerText = db.get('quote', 'KỶ LUẬT LÀ SỨC MẠNH');
 
         // Subject mark logic
-        const subjects = ["Toán Học", "Vật Lý", "Hóa Học", "Lịch Sử", "Ngữ Văn", "Tiếng Anh"];
+        const subjects = ["Toán Học", "Vật Lý", "Hóa Học", "Tin Học", "Ngữ Văn", "Tiếng Anh"];
         const subMarks = db.get('sub_marks', {});
         const subBox = document.getElementById('subject-log');
         subjects.forEach(s => {
@@ -594,7 +638,7 @@
         });
 
         // Roadmap
-        const road = ["Định vị HSA", "Trật tự TG", "Chủ nghĩa XH", "ASEAN", "Cải cách VN", "Kháng chiến Pháp", "Kháng chiến Mỹ", "Đổi mới", "Đối ngoại", "Văn minh VN"];
+        const road = ["Tư duy định lượng", "Tư duy định tính", "Giải quyết vấn đề", "Tổng ôn Lý 11-12", "Cấu trúc dữ liệu", "Lập trình C++/Python", "Đề luyện HSA 01", "Đề luyện HSA 02", "Tối ưu hóa điểm số", "Chiến thuật phòng thi"];
         const roadMarks = db.get('road_marks', []);
         const roadBox = document.getElementById('roadmap-list');
         road.forEach((s, i) => {
@@ -615,7 +659,6 @@
     function editQuote() { const r = prompt("Châm ngôn mới:"); if(r) { document.getElementById('quote-display').innerText = r.toUpperCase(); db.save('quote', r.toUpperCase()); } }
 
     window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeTheater(); });
-    
     init();
 </script>
 </body>
