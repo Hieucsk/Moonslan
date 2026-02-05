@@ -3,492 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moonslan - Tactical Command V26.6 (Persistent)</title>
+    <title>Moonslan - Tactical Command V28.6 (Pro Insight)</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #02060f;
-            --card-bg: rgba(13, 20, 38, 0.85);
+            --bg: #020617;
+            --card-bg: rgba(15, 23, 42, 0.85);
             --neon-pink: #ff007a;
             --neon-blue: #00f2ff;
-            --neon-green: #39ff14;
-            --neon-yellow: #fff01f;
+            --neon-green: #10b981;
+            --neon-yellow: #f59e0b;
             --text: #f1f5f9;
-            --border: rgba(255, 255, 255, 0.1);
+            --border: rgba(0, 242, 255, 0.2);
+            --zoom-level: 1;
         }
 
-        /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, var(--neon-blue), var(--neon-pink)); border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
 
-        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        * { box-sizing: border-box; transition: transform 0.2s ease; }
         
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(0, 242, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(255, 0, 122, 0.08) 0%, transparent 40%);
-            color: var(--text); margin: 0; padding: 25px; min-height: 100vh;
+                radial-gradient(circle at 10% 20%, rgba(0, 242, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 122, 0.1) 0%, transparent 40%);
+            color: var(--text); margin: 0; padding: 15px; min-height: 100vh; overflow-x: hidden;
         }
 
-        #focus-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(30px);
-            z-index: 99; display: none; opacity: 0;
+        #master-wrapper {
+            transform-origin: top center;
+            transform: scale(var(--zoom-level));
         }
-        body.focus-active #focus-overlay { display: block; opacity: 1; }
 
-        .header-section { text-align: center; margin-bottom: 20px; }
-        #sys-clock { 
-            font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--neon-blue); 
-            letter-spacing: 5px; text-shadow: 0 0 10px var(--neon-blue); opacity: 0.7;
+        .zoom-controls {
+            position: fixed; bottom: 20px; right: 20px; z-index: 10000;
+            display: flex; gap: 10px; background: rgba(0,0,0,0.7); padding: 8px; border-radius: 50px; border: 1px solid var(--border);
         }
-        
-        #quote-display { 
-            font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.8rem;
-            text-transform: uppercase; letter-spacing: 4px;
-            background: linear-gradient(90deg, var(--neon-blue), #fff, var(--neon-pink));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-size: 200% auto; animation: shine 5s linear infinite;
-            line-height: 1.4; filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
-        }
-        @keyframes shine { to { background-position: 200% center; } }
 
-        .search-wrapper { max-width: 700px; margin: 0 auto 40px auto; position: relative; }
-        #tactical-search {
-            width: 100%; padding: 16px 60px 16px 25px; background: rgba(13, 20, 38, 0.6);
-            border: 1px solid var(--border); border-left: 4px solid var(--neon-blue);
-            border-radius: 12px; color: var(--text); font-family: 'JetBrains Mono', monospace; outline: none; backdrop-filter: blur(10px);
+        .dashboard {
+            max-width: 1800px; margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            gap: 20px;
         }
-        #tactical-search:focus { border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
-        .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--neon-blue); font-family: 'Orbitron'; font-weight: 900; cursor: pointer; font-size: 0.8rem; }
-
-        .main-container { max-width: 1450px; margin: 0 auto; display: grid; grid-template-columns: 350px 1fr 340px; gap: 25px; }
 
         .card { 
-            background: var(--card-bg); border-radius: 24px; padding: 25px; 
-            border: 1px solid var(--border); backdrop-filter: blur(15px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6); margin-bottom: 25px;
+            background: var(--card-bg); border-radius: 20px; padding: 20px; 
+            border: 1px solid var(--border); backdrop-filter: blur(25px);
+            position: relative; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        
-        .card.focused {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.8);
-            z-index: 100; width: 400px; border-color: var(--neon-blue); background: #0b1224;
-            box-shadow: 0 0 100px rgba(0, 242, 255, 0.4);
+
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink));
+        }
+
+        .center-command { display: flex; flex-direction: column; gap: 20px; }
+
+        .main-clock-section { text-align: center; padding: 20px; }
+
+        .central-countdown {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+            margin: 20px 0; padding: 20px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+            background: rgba(255,255,255,0.02); border-radius: 20px;
         }
 
         .title-h2 { 
             font-family: 'Orbitron'; font-size: 0.75rem; color: var(--neon-blue); 
-            margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase; 
+            margin-bottom: 15px; letter-spacing: 2px; text-transform: uppercase; 
             display: flex; align-items: center; gap: 10px;
         }
-        .title-h2::before { content: ''; display: block; width: 4px; height: 15px; background: var(--neon-pink); border-radius: 2px; }
+        .title-h2 span { color: var(--neon-pink); font-weight: 900; }
 
-        .time-display { font-family: 'JetBrains Mono'; font-size: 3.2rem; text-align: center; margin: 15px 0; font-weight: 700; cursor: zoom-in; }
-        .sw-color { color: var(--neon-green); text-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
-        .tm-color { color: var(--neon-yellow); text-shadow: 0 0 20px rgba(255, 240, 31, 0.4); }
+        #tactical-search {
+            width: 100%; padding: 18px 30px; background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border); border-radius: 100px; color: white;
+            font-family: 'JetBrains Mono'; outline: none; font-size: 1rem;
+            margin-bottom: 10px; transition: 0.3s;
+        }
+        #tactical-search:focus { border-color: var(--neon-pink); box-shadow: 0 0 20px rgba(255, 0, 122, 0.2); }
 
-        .btn-group { display: flex; justify-content: center; gap: 10px; }
-        .btn { padding: 12px 18px; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); font-family: 'Orbitron'; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; background: rgba(0,0,0,0.3); color: #fff; }
+        .timer-display { font-family: 'JetBrains Mono'; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+        .big-time { font-size: 5.5rem; color: #fff; text-shadow: 0 0 30px rgba(0, 242, 255, 0.4); }
+        
+        .todo-item { 
+            display: flex; align-items: center; gap: 12px; padding: 12px; 
+            background: rgba(255,255,255,0.04); border-radius: 12px; margin-bottom: 8px; cursor: pointer;
+            font-size: 0.85rem; border: 1px solid transparent; transition: 0.2s;
+        }
+        .todo-item:hover { border-color: var(--neon-blue); transform: translateX(5px); }
+        .todo-item.done { opacity: 0.4; text-decoration: line-through; filter: grayscale(1); }
 
-        .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        /* Cải tiến sub-item: Hover đổi màu và gạch ngang chữ */
-        .sub-item { font-size: 0.8rem; display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px; border-radius: 8px; }
-        .sub-item:hover { background: rgba(255,255,255,0.05); }
-        .sub-item.checked span { text-decoration: line-through; opacity: 0.5; }
+        .btn { 
+            background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white;
+            padding: 10px 18px; border-radius: 10px; font-family: 'Orbitron'; font-size: 0.65rem; cursor: pointer;
+            font-weight: bold; text-transform: uppercase; transition: 0.3s;
+        }
+        .btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
 
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-box { text-align: center; padding: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .stat-label { font-size: 0.55rem; font-family: 'Orbitron'; margin-bottom: 5px; opacity: 0.7; }
-        .stat-val { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 1.1rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .link-card {
+            background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;
+            text-decoration: none; color: var(--text); font-size: 0.75rem;
+            border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px;
+        }
+        .link-card:hover { border-color: var(--neon-pink); background: rgba(255,0,122,0.1); }
 
-        .history-list { max-height: 200px; overflow-y: auto; font-size: 0.7rem; font-family: 'JetBrains Mono'; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
-        .history-item { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        /* VIDEO SYSTEM */
+        .video-container {
+            width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--neon-pink); 
+            margin-bottom: 10px; position: relative; background: #000; aspect-ratio: 16/9;
+        }
+        #main-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .video-overlay {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3); cursor: pointer; opacity: 0; transition: 0.3s;
+        }
+        .video-container:hover .video-overlay { opacity: 1; }
+        .play-btn { font-size: 3rem; color: white; filter: drop-shadow(0 0 10px var(--neon-blue)); }
+        .video-nav { display: flex; gap: 5px; margin-bottom: 15px; }
 
-        .link-category { font-family: 'Orbitron'; font-size: 0.55rem; color: var(--neon-yellow); opacity: 0.8; margin: 12px 0 8px 0; border-left: 2px solid var(--neon-yellow); padding-left: 8px; }
-        .quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .link-item { text-decoration: none; padding: 10px 5px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text); font-size: 0.58rem; text-align: center; font-family: 'Orbitron'; }
-        .link-item:hover { border-color: var(--neon-blue); color: var(--neon-blue); background: rgba(0, 242, 255, 0.1); }
+        /* THEATER MODE */
+        #theater-mode {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 20000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #theater-mode.active { display: flex; }
+        #theater-video { width: 80vw; max-height: 80vh; border: 2px solid var(--neon-blue); box-shadow: 0 0 50px rgba(0,242,255,0.3); }
 
-        .progress-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); margin-top: 5px; }
-        .progress-fill { height: 100%; width: 0%; transition: width 1s ease-out; }
+        /* STATS ANALYTICS */
+        .stats-scroll { max-height: 150px; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
+        .stats-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono'; }
+        .stats-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.75rem; }
+        .label-dim { opacity: 0.6; text-transform: uppercase; font-size: 0.6rem; }
+        .value-neon { color: var(--neon-blue); font-weight: bold; text-align: right; }
 
-        .roadmap-list { height: 480px; overflow-y: auto; padding-right: 10px; }
-        .roadmap-item { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .roadmap-item:hover { background: rgba(255,255,255,0.08); }
-        .roadmap-item.checked span { text-decoration: line-through; opacity: 0.5; }
+        .focus-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        body.focus-active { overflow: hidden; }
+        body.focus-active .focus-overlay { display: flex; }
 
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.75rem; cursor: pointer; color: #64748b; }
-        .m-pink { background: var(--neon-pink) !important; color: #fff; box-shadow: 0 0 10px var(--neon-pink); }
-
-        @media (max-width: 1100px) { .main-container { grid-template-columns: 1fr; } }
+        @media (max-width: 1400px) { .dashboard { grid-template-columns: 300px 1fr; } .sidebar-right { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr; } }
+        @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; } .sidebar-right { grid-template-columns: 1fr; } }
     </style>
 </head>
-<body>
+<body id="main-body">
 
-<audio id="alarm-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3" preload="auto"></audio>
+<div class="zoom-controls">
+    <button class="btn" onclick="adjustZoom(0.1)">+</button>
+    <button class="btn" onclick="resetZoom()">1:1</button>
+    <button class="btn" onclick="adjustZoom(-0.1)">-</button>
+</div>
 
-<div id="focus-overlay" onclick="exitFocus()"></div>
-
-<div class="header-section">
-    <div id="sys-clock">SYSTEM ONLINE</div>
-    <div class="quote-container" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 20px;">
-        <span id="quote-display">VẬN MỆNH NẰM TRONG TAY KẺ NỖ LỰC</span>
-        <span style="cursor:pointer; font-size: 1.2rem; color:var(--neon-yellow);" onclick="editQuote()">✎</span>
+<div id="theater-mode">
+    <video id="theater-video" controls loop></video>
+    <div style="margin-top: 20px; display: flex; gap: 20px;">
+        <button class="btn" onclick="prevVideo()">BACK</button>
+        <button class="btn" onclick="closeTheater()" style="border-color: var(--neon-pink);">CLOSE (ESC)</button>
+        <button class="btn" onclick="nextVideo()">NEXT</button>
     </div>
 </div>
 
-<div class="search-wrapper">
-    <input type="text" id="tactical-search" placeholder="Nhập từ khóa hoặc URL (Enter để thực thi)..." autocomplete="off">
-    <div class="search-icon" onclick="executeSearch()">EXE_</div>
+<div class="focus-overlay" id="focus-zone" onclick="toggleFocus(false)">
+    <div id="focus-timer-big" class="timer-display" style="font-size: 12rem; color: var(--neon-blue);">00:00:00</div>
+    <div id="focus-mode-label" style="font-family: 'Orbitron'; letter-spacing: 15px; color: var(--neon-pink); margin-top: 30px; text-align:center;">DEEP WORK MODE</div>
+    <div style="margin-top: 50px; opacity: 0.4; font-size: 0.8rem;">CLICK ANYWHERE TO EXIT</div>
 </div>
 
-<div class="main-container">
-    <div class="sidebar">
-        <div class="card">
-            <h2 class="title-h2">NHẬT KÝ MÔN HỌC</h2>
-            <div class="subject-grid" id="subject-log"></div>
-        </div>
-
-        <div class="card">
-            <h2 class="title-h2">THỐNG KÊ HỌC TẬP</h2>
-            <div class="stat-grid">
-                <div class="stat-box" style="background: rgba(57, 255, 20, 0.05); border-color: var(--neon-green);">
-                    <div class="stat-label" style="color: var(--neon-green);">HÔM NAY</div>
-                    <div id="today-time-display" class="stat-val" style="color: var(--neon-green);">00:00:00</div>
-                </div>
-                <div class="stat-box" style="background: rgba(0, 242, 255, 0.05); border-color: var(--neon-blue);">
-                    <div class="stat-label" style="color: var(--neon-blue);">TỔNG 7 NGÀY</div>
-                    <div id="week-total-display" class="stat-val" style="color: var(--neon-blue);">00:00:00</div>
-                </div>
+<div id="master-wrapper">
+<div class="dashboard">
+    <div class="sidebar-left">
+        <div class="card" style="margin-bottom: 20px;">
+            <h2 class="title-h2"><span>01</span> VISUAL MOTIVATION</h2>
+            <div class="video-container" onclick="openTheater()">
+                <video id="main-video" autoplay muted loop playsinline>
+                    <source src="https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-city-street-at-night-4013-large.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay"><span class="play-btn">▶</span></div>
             </div>
-            <div class="history-list" id="history-list"></div>
+            <div class="video-nav">
+                <button class="btn" onclick="prevVideo()" style="flex:1">BACK</button>
+                <button class="btn" onclick="nextVideo()" style="flex:1">NEXT</button>
+            </div>
+            <div id="subject-log" class="grid-2"></div>
         </div>
 
-        <div class="card" id="sw-card">
-            <h2 class="title-h2">STOPWATCH</h2>
-            <div id="sw-display" class="time-display sw-color" onclick="setFocus('sw-card', true)">00:00:00</div>
-            <div class="btn-group">
-                <button class="btn" style="border-color:var(--neon-green); color:var(--neon-green);" onclick="startSW()">START</button>
-                <button class="btn" style="border-color:var(--neon-pink); color:var(--neon-pink);" onclick="stopSW()">STOP</button>
-                <button class="btn" style="border-color:var(--neon-blue); color:var(--neon-blue);" onclick="resetSW()">Reset</button>
+        <div class="card" style="margin-bottom: 20px;">
+            <h2 class="title-h2"><span>02</span> SCRATCHPAD</h2>
+            <textarea id="scratchpad" placeholder="Ý tưởng nhanh..." 
+                style="width: 100%; height: 120px; background: rgba(0,0,0,0.3); border: none; color: #fff; font-family: 'Inter'; font-size: 0.85rem; padding: 15px; border-radius: 12px; resize: none; border: 1px solid rgba(255,255,255,0.05); outline:none;"></textarea>
+        </div>
+
+        <div class="card">
+            <h2 class="title-h2"><span>03</span> THÁNG HIỆN TẠI</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <button onclick="changeMonth(-1)" class="btn"><</button>
+                <div id="cal-title" style="font-family: 'Orbitron'; font-size: 0.8rem; color: var(--neon-blue);"></div>
+                <button onclick="changeMonth(1)" class="btn">></button>
+            </div>
+            <div id="cal-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;"></div>
+            <div style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.6rem; margin-bottom: 8px; letter-spacing:1px;">
+                    <span>COMPLETION RATE</span><span id="month-pc">0%</span>
+                </div>
+                <div style="height: 4px; background: #000; border-radius: 10px; overflow: hidden;">
+                    <div id="month-fill" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue)); transition: 1s;"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="main-content">
-        <div class="card">
-            <h2 class="title-h2">THỜI GIAN CHIẾN THUẬT</h2>
-            <div style="display: flex; gap: 20px;">
-                <div style="flex: 1; text-align: center; background: rgba(255,0,122,0.05); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,0,122,0.2);">
-                    <p style="font-size: 0.65rem; color: var(--neon-pink); font-family: 'Orbitron'; margin-bottom: 8px;">TNTHPT 2026</p>
-                    <div id="tn-d" style="font-family: 'Orbitron'; font-size: 3.5rem; color: var(--neon-pink); font-weight: 900;">--</div>
+    <div class="center-command">
+        <div class="search-container">
+            <input type="text" id="tactical-search" placeholder="Search Google or enter URL (Press Enter)...">
+        </div>
+
+        <div class="main-clock-section">
+            <div id="sys-date" style="font-family: 'Orbitron'; color: var(--neon-pink); letter-spacing: 5px; font-size: 0.9rem; margin-bottom: 10px; opacity: 0.8;">---</div>
+            <div id="main-clock" class="timer-display big-time">00:00:00</div>
+            
+            <div class="central-countdown">
+                <div>
+                    <div style="color: var(--neon-pink); font-size: 0.7rem; font-family: 'Orbitron'; letter-spacing: 2px;">TN THPT 2026</div>
+                    <div id="tn-d-center" style="font-size: 3.5rem; font-family: 'Orbitron'; font-weight: 900; color: #fff;">--</div>
+                    <div style="font-size: 0.55rem; opacity: 0.5; letter-spacing: 3px;">DAYS REMAINING</div>
                 </div>
-                <div style="flex: 1; text-align: center; background: rgba(0,242,255,0.05); padding: 20px; border-radius: 20px; border: 1px solid rgba(0,242,255,0.2);">
-                    <p style="font-size: 0.65rem; color: var(--neon-blue); font-family: 'Orbitron'; margin-bottom: 8px;">HSA ĐỢT 3</p>
-                    <div id="hsa-d" style="font-family: 'Orbitron'; font-size: 3.5rem; color: var(--neon-blue); font-weight: 900;">--</div>
+                <div style="border-left: 1px solid var(--border);">
+                    <div style="color: var(--neon-blue); font-size: 0.7rem; font-family: 'Orbitron'; letter-spacing: 2px;">HSA VNU 2026</div>
+                    <div id="hsa-d-center" style="font-size: 3.5rem; font-family: 'Orbitron'; font-weight: 900; color: #fff;">--</div>
+                    <div style="font-size: 0.55rem; opacity: 0.5; letter-spacing: 3px;">DAYS REMAINING</div>
+                </div>
+            </div>
+
+            <h1 id="quote-display" onclick="editQuote()" style="cursor: pointer; font-family: 'Orbitron'; font-size: 1.4rem; margin: 15px 0; color: #fff; text-transform: uppercase; letter-spacing: 5px; transition: 0.3s;">KỶ LUẬT LÀ SỨC MẠNH</h1>
+        </div>
+
+        <div class="card">
+            <h2 class="title-h2"><span>04</span> BỘ ĐẾM CHIẾN THUẬT & DỮ LIỆU</h2>
+            <div class="grid-2" style="gap: 30px; margin-bottom: 20px;">
+                <div style="text-align: center;">
+                    <div class="title-h2" style="justify-content: center;">STOPWATCH</div>
+                    <div id="sw-display" class="timer-display" style="color: var(--neon-green); font-size: 3.2rem; margin-bottom: 15px;">00:00:00</div>
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <button class="btn" id="sw-start-btn" onclick="toggleSW()">BẮT ĐẦU</button>
+                        <button class="btn" onclick="saveStudyLog()" style="border-color: var(--neon-pink);">LƯU LẠI</button>
+                    </div>
+                </div>
+                <div style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                    <div class="title-h2" style="justify-content: center;">STUDY ANALYTICS</div>
+                    <div class="stats-scroll">
+                        <table class="stats-table">
+                            <thead>
+                                <tr><td class="label-dim">Ngày</td><td class="label-dim" style="text-align:right">Thời gian</td></tr>
+                            </thead>
+                            <tbody id="stats-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-2" style="gap:30px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <div style="text-align: center;">
+                    <div class="title-h2" style="justify-content: center;">POMODORO</div>
+                    <div id="tm-display" class="timer-display" style="color: var(--neon-yellow); font-size: 3.2rem; margin-bottom: 15px;">25:00</div>
+                    <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                        <input type="number" id="tm-min" value="25" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid #444; color: white; padding: 5px; border-radius: 8px; text-align: center;">
+                        <button class="btn" id="tm-start-btn" onclick="toggleTM()">CHẠY</button>
+                        <button class="btn" onclick="resetTM()">↻</button>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:center;">
+                     <div class="btn" style="width: 100%; text-align: center; padding: 25px;" onclick="toggleFocus(true)">KÍCH HOẠT FOCUS MODE</div>
                 </div>
             </div>
         </div>
 
-        <div class="card" id="tm-card">
-            <h2 class="title-h2">TIMER PHIÊN HỌC</h2>
-            <div style="text-align:center; margin-bottom: 10px; font-size: 0.8rem; opacity: 0.8;">
-                <input type="number" id="tm-min" value="45" style="width:50px; background:#000; border:1px solid #333; color:var(--neon-yellow); text-align:center; border-radius:5px;"> phút
-            </div>
-            <div id="tm-display" class="time-display tm-color" onclick="setFocus('tm-card', true)">45:00</div>
-            <div class="btn-group">
-                <button class="btn" style="border-color:var(--neon-yellow); color:var(--neon-yellow);" onclick="startTM()">Kích hoạt</button>
-                <button class="btn" onclick="stopTM()">Dừng chuông</button>
-                <button class="btn" onclick="resetTM()">Mới</button>
-            </div>
-        </div>
-
         <div class="card">
-            <h2 class="title-h2">LỘ TRÌNH HSA SỬ (17 BUỔI)</h2>
-            <div class="roadmap-list" id="roadmap-list"></div>
+            <h2 class="title-h2"><span>05</span> LỘ TRÌNH ÔN THI HSA LỊCH SỬ</h2>
+            <div id="roadmap-list" style="max-height: 220px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;"></div>
         </div>
     </div>
 
-    <div class="sidebar">
-        <div class="card">
-            <h2 class="title-h2">CHỈ SỐ TIẾN ĐỘ</h2>
-            <div style="margin-bottom: 15px;">
-                <div style="display:flex; justify-content:space-between; font-size:0.65rem; font-family:'Orbitron';"><span>TUẦN NÀY (MÔN)</span><span id="week-pc">0%</span></div>
-                <div class="progress-bar-bg"><div id="week-fill" class="progress-fill" style="background:linear-gradient(90deg, var(--neon-blue), var(--neon-green));"></div></div>
-            </div>
-            <div>
-                <div style="display:flex; justify-content:space-between; font-size:0.65rem; font-family:'Orbitron';"><span>THÁNG NÀY (CHECK-IN)</span><span id="month-pc">0%</span></div>
-                <div class="progress-bar-bg"><div id="month-fill" class="progress-fill" style="background:linear-gradient(90deg, var(--neon-pink), var(--neon-yellow));"></div></div>
+    <div class="sidebar-right">
+        <div class="card" style="margin-bottom: 20px;">
+            <h2 class="title-h2"><span>06</span> TARGET SCORE</h2>
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; font-family:'JetBrains Mono'; font-size: 0.8rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>ĐIỂM HSA:</span><input type="text" id="target-hsa" class="target-input" value="100+"></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>TOÁN:</span><input type="text" id="target-math" class="target-input" value="9.0"></div>
+                <div style="display: flex; justify-content: space-between;"><span>LỊCH SỬ:</span><input type="text" id="target-history" class="target-input" value="9.5"></div>
             </div>
         </div>
 
-        <div class="card">
-            <h2 class="title-h2">TRUNG TÂM TÀI NGUYÊN</h2>
-            <div class="resource-hub">
-                <div class="link-category">HỆ THỐNG HỌC TẬP</div>
-                <div class="quick-links">
-                    <a href="https://mapstudy.edu.vn" target="_blank" class="link-item">MAPSTUDY</a>
-                    <a href="https://tenschool.vn" target="_blank" class="link-item">TENSCHOOL</a>
-                    <a href="https://toiyeuhoahoc.com" target="_blank" class="link-item" style="color:var(--neon-pink); border-color:var(--neon-pink);">TYHH</a>
-                    <a href="https://tailieuonthi.org" target="_blank" class="link-item" style="color:var(--neon-blue); border-color:var(--neon-blue);">TÀI LIỆU</a>
-                </div>
-                <div class="link-category">DỮ LIỆU HSA</div>
-                <div class="quick-links">
-                    <a href="https://docs.google.com/spreadsheets/d/18qov1FzYTm6A-yswR8RNXB17BanuLmX5dppUzv3vlF8/edit" target="_blank" class="link-item">📊 HSA SHEET</a>
-                    <a href="https://khaothi.vnu.edu.vn" target="_blank" class="link-item">CỔNG HSA</a>
-                    <a href="https://www.desmos.com/calculator" target="_blank" class="link-item">DESMOS</a>
-                    <a href="https://phet.colorado.edu/vi/" target="_blank" class="link-item" style="color:var(--neon-green); border-color:var(--neon-green);">⚡ PHET</a>
-                </div>
+        <div class="card" style="margin-bottom: 20px;">
+            <h2 class="title-h2"><span>07</span> NHIỆM VỤ CHIẾN THUẬT</h2>
+            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                <input type="text" id="todo-input" placeholder="Add mission..." style="flex:1; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: white; padding: 10px; font-size: 0.8rem;">
+                <button onclick="addTodo()" class="btn">+</button>
             </div>
+            <div id="todo-list" style="max-height: 280px; overflow-y: auto;"></div>
         </div>
 
         <div class="card">
-            <h2 class="title-h2">LỊCH QUẢN TRỊ</h2>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <button onclick="changeMonth(-1)" style="background:none; border:none; color:var(--neon-blue); cursor:pointer;">&lt;</button>
-                <div id="cal-title" style="color:var(--neon-green); font-family:'Orbitron'; font-size: 0.75rem;"></div>
-                <button onclick="changeMonth(1)" style="background:none; border:none; color:var(--neon-blue); cursor:pointer;">&gt;</button>
+            <h2 class="title-h2"><span>08</span> EXTERNAL LINKS</h2>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <a href="#" target="_blank" class="link-card" style="border-color: var(--neon-pink);"><i>📊</i> <b>PERSONAL DATA</b></a>
+                <a href="https://khaothi.vnu.edu.vn" target="_blank" class="link-card"><i>🔵</i> HSA VNU Portal</a>
+                <a href="https://mapstudy.edu.vn" target="_blank" class="link-card"><i>📚</i> MapStudy</a>
+                <a href="https://tenschool.vn" target="_blank" class="link-card"><i>🔢</i> TenSchool</a>
+                <a href="https://chatgpt.com" target="_blank" class="link-card"><i>🤖</i> AI Assistant</a>
             </div>
-            <div class="calendar-grid" id="cal-grid"></div>
         </div>
     </div>
 </div>
+</div>
+
+<audio id="alarm-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
 
 <script>
-    const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-    const get = (k) => JSON.parse(localStorage.getItem(k)) || {};
-
-    // --- CLOCK ---
-    const getTKey = () => { const d = new Date(); return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`; };
-    setInterval(() => { document.getElementById('sys-clock').innerText = new Date().toLocaleString('vi-VN').toUpperCase(); }, 1000);
-
-    // --- SEARCH ---
-    document.getElementById('tactical-search').addEventListener('keypress', (e) => { if (e.key === 'Enter') executeSearch(); });
-    function executeSearch() {
-        const input = document.getElementById('tactical-search');
-        const query = input.value.trim();
-        if (!query) return;
-        window.open(query.includes('.') && !query.includes(' ') ? (query.startsWith('http') ? query : 'https://' + query) : `https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
-        input.value = '';
-    }
-
-    // --- SUBJECTS (OPTIMIZED: CLICK TEXT TO TOGGLE) ---
-    const subjects = ["Toán Học", "Vật Lý", "Hóa Học", "Lịch Sử", "Ngữ Văn", "Tin Học"];
-    let subMarks = get('moonslan_sub_marks');
-    const subContainer = document.getElementById('subject-log');
-    
-    subjects.forEach(s => {
-        const div = document.createElement('div'); 
-        div.className = 'sub-item' + (subMarks[s] ? ' checked' : '');
-        
-        const cb = document.createElement('input'); 
-        cb.type = "checkbox"; 
-        cb.checked = subMarks[s] || false;
-        
-        // Chặn sự kiện nổi bọt khi click thẳng vào checkbox để tránh kích hoạt click của div 2 lần
-        cb.onclick = (e) => e.stopPropagation();
-        cb.onchange = () => {
-            subMarks[s] = cb.checked;
-            save('moonslan_sub_marks', subMarks);
-            div.classList.toggle('checked', cb.checked);
-            updProgress();
-        };
-
-        // Khi click vào cả vùng div (bao gồm chữ)
-        div.onclick = () => {
-            cb.checked = !cb.checked;
-            subMarks[s] = cb.checked;
-            save('moonslan_sub_marks', subMarks);
-            div.classList.toggle('checked', cb.checked);
-            updProgress();
-        };
-
-        div.appendChild(cb); 
-        const label = document.createElement('span');
-        label.innerText = s;
-        div.appendChild(label); 
-        subContainer.appendChild(div);
-    });
-
-    // --- LOGS ---
-    let studyData = get('moonslan_study_logs');
-    function fmtT(sec) {
-        if(sec < 0) sec = 0;
-        const h = Math.floor(sec/3600).toString().padStart(2,'0'), m = Math.floor((sec%3600)/60).toString().padStart(2,'0'), s = (sec%60).toString().padStart(2,'0');
-        return `${h}:${m}:${s}`;
-    }
-    function updStudy() {
-        const tk = getTKey();
-        const hist = document.getElementById('history-list'); hist.innerHTML = '';
-        let weekTotal = 0;
-        document.getElementById('today-time-display').innerText = fmtT(studyData[tk] || 0);
-        const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        Object.keys(studyData).sort().reverse().forEach(k => {
-            if (new Date(k) >= sevenDaysAgo) weekTotal += studyData[k];
-            hist.innerHTML += `<div class="history-item"><span>${k}</span><span style="color:var(--neon-yellow)">${fmtT(studyData[k])}</span></div>`;
-        });
-        document.getElementById('week-total-display').innerText = fmtT(weekTotal);
-    }
-
-    // --- STOPWATCH ---
-    let swI;
-    function startSW() {
-        if (!localStorage.getItem('sw_start_time')) {
-            localStorage.setItem('sw_start_time', Date.now());
+    // --- DATABASE MANAGER ---
+    const DB_KEY = 'MOONSLAN_V28_';
+    const db = {
+        save: (k, v) => localStorage.setItem(DB_KEY + k, JSON.stringify(v)),
+        get: (k, def = null) => {
+            const val = localStorage.getItem(DB_KEY + k);
+            try { return val ? JSON.parse(val) : def; } catch { return def; }
         }
-        if (!swI) swI = setInterval(updateSWUI, 1000);
-    }
-    function updateSWUI() {
-        const start = localStorage.getItem('sw_start_time');
-        if (start) {
-            const elapsed = Math.floor((Date.now() - parseInt(start)) / 1000);
-            document.getElementById('sw-display').innerText = fmtT(elapsed);
-        }
-    }
-    function stopSW() {
-        clearInterval(swI); 
-        swI = null;
-    }
-    function resetSW() {
-        const start = localStorage.getItem('sw_start_time');
-        if (start) {
-            const elapsed = Math.floor((Date.now() - parseInt(start)) / 1000);
-            const tk = getTKey();
-            studyData[tk] = (studyData[tk] || 0) + elapsed;
-            save('moonslan_study_logs', studyData);
-            
-            localStorage.removeItem('sw_start_time');
-            clearInterval(swI); swI = null;
-            document.getElementById('sw-display').innerText = "00:00:00";
-            updStudy();
+    };
+
+    // --- UTILS ---
+    const getToday = () => new Date().toLocaleDateString('sv-SE');
+    const formatTime = (s) => {
+        const h = Math.floor(s / 3600).toString().padStart(2, '0');
+        const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
+        const sec = (s % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${sec}`;
+    };
+
+    // --- STOPWATCH SYSTEM (FIXED & SYNCED) ---
+    let swActive = false;
+    let swInterval = null;
+    let swStartTime = 0;
+    let swBaseTime = db.get('sw_base', 0); // Thời gian đã tích lũy trước đó
+
+    function toggleSW() {
+        const btn = document.getElementById('sw-start-btn');
+        if (!swActive) {
+            swActive = true;
+            swStartTime = Date.now();
+            swInterval = setInterval(updateSWDisplay, 100);
+            btn.innerText = "DỪNG";
+            btn.style.borderColor = "var(--neon-yellow)";
+        } else {
+            swActive = false;
+            clearInterval(swInterval);
+            swBaseTime += (Date.now() - swStartTime);
+            db.save('sw_base', swBaseTime);
+            btn.innerText = "TIẾP TỤC";
+            btn.style.borderColor = "var(--neon-blue)";
         }
     }
 
-    // --- TIMER ---
-    let tmI;
-    const alarm = document.getElementById('alarm-sound');
-    function startTM() {
-        let endTime = localStorage.getItem('tm_end_time');
-        if (!endTime) {
-            const mins = document.getElementById('tm-min').value;
-            endTime = Date.now() + (mins * 60 * 1000);
-            localStorage.setItem('tm_end_time', endTime);
+    function updateSWDisplay() {
+        let currentTotal = swBaseTime;
+        if (swActive) currentTotal += (Date.now() - swStartTime);
+        const seconds = Math.floor(currentTotal / 1000);
+        document.getElementById('sw-display').innerText = formatTime(seconds);
+        if(document.body.classList.contains('focus-active')) updateFocusDisplay();
+    }
+
+    function saveStudyLog() {
+        if (swActive) toggleSW();
+        const totalSec = Math.floor(swBaseTime / 1000);
+        if (totalSec <= 0) return;
+
+        const today = getToday();
+        let logs = db.get('study_logs', {});
+        logs[today] = (logs[today] || 0) + totalSec;
+        db.save('study_logs', logs);
+
+        // Reset SW
+        swBaseTime = 0;
+        db.save('sw_base', 0);
+        document.getElementById('sw-display').innerText = "00:00:00";
+        document.getElementById('sw-start-btn').innerText = "BẮT ĐẦU";
+        renderStats();
+    }
+
+    // --- POMODORO SYSTEM ---
+    let tmInterval = null;
+    let tmRemaining = 0;
+    let tmIsRunning = false;
+
+    function toggleTM() {
+        const btn = document.getElementById('tm-start-btn');
+        if (!tmIsRunning) {
+            if (tmRemaining <= 0) tmRemaining = document.getElementById('tm-min').value * 60;
+            tmIsRunning = true;
+            btn.innerText = "DỪNG";
+            tmInterval = setInterval(() => {
+                if (tmRemaining > 0) {
+                    tmRemaining--;
+                    renderTM();
+                } else {
+                    clearInterval(tmInterval);
+                    tmIsRunning = false;
+                    document.getElementById('alarm-sound').play();
+                    btn.innerText = "CHẠY";
+                    alert("Hoàn thành phiên học!");
+                }
+            }, 1000);
+        } else {
+            clearInterval(tmInterval);
+            tmIsRunning = false;
+            btn.innerText = "TIẾP TỤC";
         }
-        if (!tmI) tmI = setInterval(updateTMUI, 1000);
     }
-    function updateTMUI() {
-        const end = localStorage.getItem('tm_end_time');
-        if (end) {
-            const remain = Math.floor((parseInt(end) - Date.now()) / 1000);
-            if (remain <= 0) {
-                document.getElementById('tm-display').innerText = "00:00";
-                alarm.play();
-                clearInterval(tmI); tmI = null;
-                return;
-            }
-            const m = Math.floor(remain / 60).toString().padStart(2, '0');
-            const s = (remain % 60).toString().padStart(2, '0');
-            document.getElementById('tm-display').innerText = `${m}:${s}`;
-        }
+
+    function renderTM() {
+        const m = Math.floor(tmRemaining / 60).toString().padStart(2, '0');
+        const s = (tmRemaining % 60).toString().padStart(2, '0');
+        document.getElementById('tm-display').innerText = `${m}:${s}`;
+        if(document.body.classList.contains('focus-active')) updateFocusDisplay();
     }
-    function stopTM() {
-        alarm.pause(); alarm.currentTime = 0;
-        clearInterval(tmI); tmI = null;
-    }
+
     function resetTM() {
-        stopTM();
-        localStorage.removeItem('tm_end_time');
-        document.getElementById('tm-display').innerText = document.getElementById('tm-min').value + ":00";
+        clearInterval(tmInterval);
+        tmIsRunning = false;
+        tmRemaining = document.getElementById('tm-min').value * 60;
+        renderTM();
+        document.getElementById('tm-start-btn').innerText = "CHẠY";
     }
 
-    // --- PROGRESS & CALENDAR ---
-    let cM = new Date().getMonth(), cY = new Date().getFullYear();
-    let marks = get('moonslan_v25_marks');
-    function updProgress() {
-        const activeSubs = Object.values(subMarks).filter(v=>v).length;
-        const subPC = Math.round((activeSubs / subjects.length) * 100) || 0;
-        document.getElementById('week-pc').innerText = subPC + "%";
-        document.getElementById('week-fill').style.width = subPC + "%";
-        const dInM = new Date(cY, cM + 1, 0).getDate();
-        const checks = Object.keys(marks).filter(k => k.startsWith(`${cY}-${(cM+1).toString().padStart(2,'0')}`)).length;
-        const monthPC = Math.round((checks/dInM)*100) || 0;
-        document.getElementById('month-pc').innerText = monthPC + "%";
-        document.getElementById('month-fill').style.width = monthPC + "%";
+    // --- STATS ANALYTICS ---
+    function renderStats() {
+        const logs = db.get('study_logs', {});
+        const body = document.getElementById('stats-body');
+        body.innerHTML = '';
+        const sorted = Object.keys(logs).sort((a, b) => new Date(b) - new Date(a));
+        sorted.forEach(date => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="label-dim">${date}</td><td class="value-neon">${formatTime(logs[date])}</td>`;
+            body.appendChild(tr);
+        });
     }
+
+    // --- CALENDAR SYSTEM ---
+    let curM = new Date().getMonth(), curY = new Date().getFullYear();
     function drawCal() {
-        const g = document.getElementById('cal-grid'); g.innerHTML = '';
-        document.getElementById('cal-title').innerText = `THÁNG ${cM+1} / ${cY}`;
-        ['CN','T2','T3','T4','T5','T6','T7'].forEach(d => g.innerHTML += `<div class="cal-day" style="opacity:0.4; font-weight:bold;">${d}</div>`);
-        const f = new Date(cY, cM, 1).getDay(), d = new Date(cY, cM+1, 0).getDate();
-        for(let i=0; i<f; i++) g.innerHTML += `<div></div>`;
-        for(let i=1; i<=d; i++) {
-            const k = `${cY}-${(cM+1).toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`, el = document.createElement('div'); el.className = 'cal-day';
-            if(marks[k]) el.classList.add('m-pink'); el.innerText = i;
-            el.onclick = () => { el.classList.toggle('m-pink'); if(el.classList.contains('m-pink')) marks[k]=1; else delete marks[k]; save('moonslan_v25_marks', marks); updProgress(); };
-            g.appendChild(el);
+        const marks = db.get('cal_marks', {});
+        const box = document.getElementById('cal-grid'); box.innerHTML = '';
+        document.getElementById('cal-title').innerText = `THÁNG ${curM + 1} / ${curY}`;
+        const firstDay = new Date(curY, curM, 1).getDay();
+        const daysInMonth = new Date(curY, curM + 1, 0).getDate();
+        
+        for (let i = 0; i < firstDay; i++) box.innerHTML += '<div></div>';
+        for (let i = 1; i <= daysInMonth; i++) {
+            const key = `${curY}-${curM + 1}-${i}`;
+            const dayEl = document.createElement('div');
+            dayEl.className = 'cal-day';
+            dayEl.style = `font-size:0.7rem; aspect-ratio:1; display:grid; place-items:center; cursor:pointer; border-radius:6px; background:${marks[key] ? 'var(--neon-pink)' : 'rgba(255,255,255,0.05)'}`;
+            dayEl.innerText = i;
+            dayEl.onclick = () => { marks[key] = !marks[key]; db.save('cal_marks', marks); drawCal(); };
+            box.appendChild(dayEl);
         }
-        updProgress();
+
+        const count = Object.keys(marks).filter(k => k.startsWith(`${curY}-${curM + 1}-`)).length;
+        const rate = Math.round((count / daysInMonth) * 100) || 0;
+        document.getElementById('month-pc').innerText = rate + "%";
+        document.getElementById('month-fill').style.width = rate + "%";
     }
-    function changeMonth(s) { cM += s; if(cM<0){cM=11;cY--;} if(cM>11){cM=0;cY++;} drawCal(); }
+    function changeMonth(v) { curM += v; if (curM < 0) { curM = 11; curY--; } if (curM > 11) { curM = 0; curY++; } drawCal(); }
 
-    // --- ROADMAP (OPTIMIZED: CLICK TEXT TO TOGGLE) ---
-    const sessions = ["Định vị HSA Sử", "Trật tự TG & CT Lạnh", "Chủ nghĩa XH (1917-nay)", "ASEAN & VN", "Cải cách/Đổi mới VN", "Chiến tranh giải phóng", "Cách mạng Tháng 8", "Kháng chiến Pháp", "Kháng chiến Mỹ", "Kinh tế Đổi mới", "Đối ngoại VN", "Hồ Chí Minh", "Biển đảo VN", "Văn minh Thế giới", "Cách mạng Tư sản", "Văn minh VN", "Lịch sử VN cận đại"];
-    let roadMarks = get('moonslan_road_marks');
-    const roadList = document.getElementById('roadmap-list');
-    
-    sessions.forEach((s, i) => { 
-        const item = document.createElement('div'); 
-        item.className = 'roadmap-item' + (roadMarks[i] ? ' checked' : '');
-        
-        const cb = document.createElement('input'); 
-        cb.type = "checkbox"; 
-        cb.checked = roadMarks[i] || false;
-        
-        cb.onclick = (e) => e.stopPropagation();
-        cb.onchange = () => {
-            roadMarks[i] = cb.checked;
-            save('moonslan_road_marks', roadMarks);
-            item.classList.toggle('checked', cb.checked);
-        };
+    // --- VIDEO SYSTEM ---
+    const playlist = [
+        "https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-city-street-at-night-4013-large.mp4",
+        "https://assets.mixkit.co/videos/preview/mixkit-animation-of-a-futuristic-city-with-neon-lights-40130-large.mp4",
+        "https://v.ftcdn.net/05/56/15/48/700_F_556154884_P5Wd70M6rYF0p0Z9XW9A0D0Z7E0H0vXF_ST.mp4",
+        "https://v.ftcdn.net/02/93/29/74/700_F_293297492_jP5O8I0P6G3N9Z3S6S0J6D0Z1T0L5G2N_ST.mp4"
+    ];
+    let vIdx = 0;
+    function updateVideo() {
+        const v = document.getElementById('main-video'), tv = document.getElementById('theater-video');
+        v.src = playlist[vIdx]; tv.src = playlist[vIdx];
+        v.play(); if (document.getElementById('theater-mode').classList.contains('active')) tv.play();
+    }
+    function nextVideo() { vIdx = (vIdx + 1) % playlist.length; updateVideo(); }
+    function prevVideo() { vIdx = (vIdx - 1 + playlist.length) % playlist.length; updateVideo(); }
+    function openTheater() { document.getElementById('theater-mode').classList.add('active'); document.getElementById('theater-video').play(); }
+    function closeTheater() { document.getElementById('theater-mode').classList.remove('active'); document.getElementById('theater-video').pause(); }
 
-        item.onclick = () => {
-            cb.checked = !cb.checked;
-            roadMarks[i] = cb.checked;
-            save('moonslan_road_marks', roadMarks);
-            item.classList.toggle('checked', cb.checked);
-        };
+    // --- MISSION & TARGET ---
+    let todos = db.get('todos', []);
+    function addTodo() {
+        const input = document.getElementById('todo-input');
+        if (input.value) { todos.push({ txt: input.value, done: false }); input.value = ''; renderTodos(); }
+    }
+    function renderTodos() {
+        const list = document.getElementById('todo-list'); list.innerHTML = '';
+        todos.forEach((t, i) => {
+            const d = document.createElement('div');
+            d.className = `todo-item ${t.done ? 'done' : ''}`;
+            d.innerHTML = `<span style="flex:1">${t.txt}</span><small onclick="deleteTodo(event, ${i})">✕</small>`;
+            d.onclick = () => { todos[i].done = !todos[i].done; renderTodos(); };
+            list.appendChild(d);
+        });
+        db.save('todos', todos);
+    }
+    function deleteTodo(e, i) { e.stopPropagation(); todos.splice(i, 1); renderTodos(); }
 
-        item.appendChild(cb); 
-        const txt = document.createElement('span');
-        txt.innerHTML = `<b>Buổi ${i+1}:</b> ${s}`;
-        item.appendChild(txt);
-        roadList.appendChild(item);
-    });
+    // --- FOCUS MODE ---
+    function toggleFocus(on) {
+        const b = document.getElementById('main-body');
+        if (on) { b.classList.add('focus-active'); updateFocusDisplay(); }
+        else b.classList.remove('focus-active');
+    }
+    function updateFocusDisplay() {
+        const big = document.getElementById('focus-timer-big'), lbl = document.getElementById('focus-mode-label');
+        if (tmIsRunning) {
+            const m = Math.floor(tmRemaining / 60).toString().padStart(2, '0');
+            const s = (tmRemaining % 60).toString().padStart(2, '0');
+            big.innerText = `${m}:${s}`;
+            big.style.color = "var(--neon-yellow)";
+            lbl.innerText = "POMODORO RUNNING";
+        } else {
+            let cur = swBaseTime; if (swActive) cur += (Date.now() - swStartTime);
+            big.innerText = formatTime(Math.floor(cur / 1000));
+            big.style.color = "var(--neon-blue)";
+            lbl.innerText = "DEEP WORK MODE";
+        }
+    }
 
-    // --- COUNTDOWN ---
-    const targetDates = { tn: new Date("2026-06-11T07:30:00"), hsa: new Date("2026-04-05T07:30:00") };
-    function updCnd() {
+    // --- INITIALIZATION ---
+    function init() {
+        // Clock
+        setInterval(() => {
+            const n = new Date();
+            document.getElementById('sys-date').innerText = n.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' }).toUpperCase();
+            document.getElementById('main-clock').innerText = n.toLocaleTimeString('vi-VN', { hour12: false });
+        }, 1000);
+
+        // Countdowns
         const n = new Date();
-        document.getElementById('tn-d').innerText = Math.max(0, Math.floor((targetDates.tn - n) / 86400000));
-        document.getElementById('hsa-d').innerText = Math.max(0, Math.floor((targetDates.hsa - n) / 86400000));
+        document.getElementById('tn-d-center').innerText = Math.max(0, Math.ceil((new Date("2026-06-11") - n) / 86400000));
+        document.getElementById('hsa-d-center').innerText = Math.max(0, Math.ceil((new Date("2026-04-05") - n) / 86400000));
+
+        // Load Targets
+        ['hsa', 'math', 'history'].forEach(id => {
+            const el = document.getElementById('target-' + id);
+            el.value = db.get('target_' + id, el.value);
+            el.oninput = () => db.save('target_' + id, el.value);
+        });
+
+        // Search
+        document.getElementById('tactical-search').onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                const q = e.target.value.trim();
+                if (q) window.open(q.includes('.') ? (q.startsWith('http') ? q : 'https://' + q) : 'https://google.com/search?q=' + q, '_blank');
+                e.target.value = '';
+            }
+        };
+
+        // Render others
+        renderTodos();
+        drawCal();
+        renderStats();
+        updateSWDisplay();
+
+        // Roadmap & Scratchpad
+        document.getElementById('scratchpad').value = db.get('scratch', '');
+        document.getElementById('scratchpad').oninput = (e) => db.save('scratch', e.target.value);
+        document.getElementById('quote-display').innerText = db.get('quote', 'KỶ LUẬT LÀ SỨC MẠNH');
+
+        // Subject mark logic
+        const subjects = ["Toán Học", "Vật Lý", "Hóa Học", "Lịch Sử", "Ngữ Văn", "Tiếng Anh"];
+        const subMarks = db.get('sub_marks', {});
+        const subBox = document.getElementById('subject-log');
+        subjects.forEach(s => {
+            const d = document.createElement('div');
+            d.className = `todo-item ${subMarks[s] ? 'done' : ''}`;
+            d.innerHTML = `<span style="font-size:0.7rem">${s}</span>`;
+            d.onclick = () => { subMarks[s] = !subMarks[s]; db.save('sub_marks', subMarks); d.classList.toggle('done'); };
+            subBox.appendChild(d);
+        });
+
+        // Roadmap
+        const road = ["Định vị HSA", "Trật tự TG", "Chủ nghĩa XH", "ASEAN", "Cải cách VN", "Kháng chiến Pháp", "Kháng chiến Mỹ", "Đổi mới", "Đối ngoại", "Văn minh VN"];
+        const roadMarks = db.get('road_marks', []);
+        const roadBox = document.getElementById('roadmap-list');
+        road.forEach((s, i) => {
+            const d = document.createElement('div');
+            d.className = `todo-item ${roadMarks[i] ? 'done' : ''}`;
+            d.innerHTML = `<span style="font-size:0.65rem">B${i+1}: ${s}</span>`;
+            d.onclick = () => { roadMarks[i] = !roadMarks[i]; db.save('road_marks', roadMarks); d.classList.toggle('done'); };
+            roadBox.appendChild(d);
+        });
     }
 
-    function setFocus(id, active) {
-        if(active) { document.body.classList.add('focus-active'); document.getElementById(id).classList.add('focused'); } 
-        else { document.body.classList.remove('focus-active'); document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused')); }
+    function adjustZoom(d) {
+        let z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--zoom-level'));
+        z = Math.min(Math.max(0.5, z + d), 1.3);
+        document.documentElement.style.setProperty('--zoom-level', z);
     }
-    function exitFocus() { setFocus('', false); }
-    function editQuote() { const n = prompt("Nhập châm ngôn:"); if(n) { document.getElementById('quote-display').innerText = n.toUpperCase(); localStorage.setItem('moonslan_custom_quote', n.toUpperCase()); } }
+    function resetZoom() { document.documentElement.style.setProperty('--zoom-level', 1); }
+    function editQuote() { const r = prompt("Châm ngôn mới:"); if(r) { document.getElementById('quote-display').innerText = r.toUpperCase(); db.save('quote', r.toUpperCase()); } }
 
-    // --- INIT ---
-    updCnd(); drawCal(); updStudy();
-    const sq = localStorage.getItem('moonslan_custom_quote'); if(sq) document.getElementById('quote-display').innerText = sq;
+    window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeTheater(); });
     
-    if(localStorage.getItem('sw_start_time')) startSW();
-    if(localStorage.getItem('tm_end_time')) startTM();
+    init();
 </script>
 </body>
 </html>
