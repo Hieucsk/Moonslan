@@ -130,10 +130,7 @@
         .video-container:hover .video-overlay { opacity: 1; }
         .play-btn { font-size: 3rem; color: white; filter: drop-shadow(0 0 10px var(--neon-blue)); }
         .video-nav { display: flex; gap: 5px; margin-bottom: 15px; }
-        .video-tag {
-            position: absolute; top: 10px; right: 10px; background: var(--neon-pink);
-            padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 0.6rem; z-index: 10;
-        }
+        .video-tag { position: absolute; top: 10px; right: 10px; background: var(--neon-pink); padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 0.6rem; z-index: 10; }
 
         /* THEATER MODE */
         #theater-mode {
@@ -190,14 +187,15 @@
         <div class="card" style="margin-bottom: 20px;">
             <h2 class="title-h2"><span>01</span> VISUAL MOTIVATION</h2>
             <div class="video-container" onclick="openTheater()">
-                <div class="video-tag" id="video-info">SCANNING...</div>
+                <div class="video-tag" id="video-info">NẠP VIDEO →</div>
                 <video id="main-video" autoplay muted loop playsinline></video>
                 <div class="video-overlay"><span class="play-btn">▶</span></div>
             </div>
             <div class="video-nav">
                 <button class="btn" onclick="prevVideo()" style="flex:1">BACK</button>
                 <button class="btn" onclick="nextVideo()" style="flex:1">NEXT</button>
-                <button class="btn" onclick="scanVideos()" title="Quét lại thư mục">↻</button>
+                <button class="btn" onclick="triggerFileInput()" title="Nạp video từ thư mục">+</button>
+                <input type="file" id="video-loader" multiple accept="video/mp4" style="display:none">
             </div>
             <div id="subject-log" class="grid-2"></div>
         </div>
@@ -353,53 +351,44 @@
         }
     };
 
-    // --- VIDEO AUTO-DETECTION SYSTEM (NEW INTEGRATION) ---
-    let playlist = [];
+    // --- VIDEO SYSTEM (QUÉT CỤC BỘ) ---
+    let localVideos = []; // Lưu các URL blob tạm thời
     let vIdx = 0;
 
-    async function scanVideos() {
-        playlist = [];
-        let i = 1;
-        const info = document.getElementById('video-info');
-        info.innerText = "SCANNING...";
+    function triggerFileInput() { document.getElementById('video-loader').click(); }
 
-        // Thử quét các file từ 1.mp4 đến 50.mp4 trong thư mục
-        while (i <= 50) {
-            const fileName = `${i}.mp4`;
-            try {
-                const response = await fetch(fileName, { method: 'HEAD' });
-                if (response.ok) {
-                    playlist.push(fileName);
-                    i++;
-                } else { break; }
-            } catch (e) { break; }
-        }
+    document.getElementById('video-loader').onchange = function(e) {
+        const files = Array.from(e.target.files);
+        // Sắp xếp theo tên 1, 2, 3...
+        files.sort((a, b) => {
+            const numA = parseInt(a.name.split('.')[0]);
+            const numB = parseInt(b.name.split('.')[0]);
+            return numA - numB;
+        });
 
-        if (playlist.length > 0) {
+        localVideos = files.map(file => URL.createObjectURL(file));
+        if(localVideos.length > 0) {
+            vIdx = 0;
             updateVideo();
-        } else {
-            // Dự phòng nếu không tìm thấy file nào trong thư mục thì dùng link mẫu
-            playlist = ["https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-city-street-at-night-4013-large.mp4"];
-            updateVideo();
-            info.innerText = "NO LOCAL MP4";
         }
-    }
+    };
 
     function updateVideo() {
-        if (playlist.length === 0) return;
+        if (localVideos.length === 0) return;
         const v = document.getElementById('main-video');
         const tv = document.getElementById('theater-video');
         const info = document.getElementById('video-info');
         
-        v.src = playlist[vIdx];
-        tv.src = playlist[vIdx];
-        info.innerText = `TRACK ${vIdx + 1}/${playlist.length}`;
-        v.play().catch(() => {});
+        v.src = localVideos[vIdx];
+        tv.src = localVideos[vIdx];
+        info.innerText = `TRACK ${vIdx + 1}/${localVideos.length}`;
+        
+        v.play().catch(() => console.log("User interaction needed"));
         if (document.getElementById('theater-mode').classList.contains('active')) tv.play();
     }
 
-    function nextVideo() { if(playlist.length > 0) { vIdx = (vIdx + 1) % playlist.length; updateVideo(); } }
-    function prevVideo() { if(playlist.length > 0) { vIdx = (vIdx - 1 + playlist.length) % playlist.length; updateVideo(); } }
+    function nextVideo() { if(localVideos.length) { vIdx = (vIdx + 1) % localVideos.length; updateVideo(); } }
+    function prevVideo() { if(localVideos.length) { vIdx = (vIdx - 1 + localVideos.length) % localVideos.length; updateVideo(); } }
     function openTheater() { document.getElementById('theater-mode').classList.add('active'); document.getElementById('theater-video').play(); }
     function closeTheater() { document.getElementById('theater-mode').classList.remove('active'); document.getElementById('theater-video').pause(); }
 
@@ -585,28 +574,21 @@
 
     // --- INITIALIZATION ---
     function init() {
-        // Clock
         setInterval(() => {
             const n = new Date();
             document.getElementById('sys-date').innerText = n.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' }).toUpperCase();
             document.getElementById('main-clock').innerText = n.toLocaleTimeString('vi-VN', { hour12: false });
         }, 1000);
 
-        // Countdowns
         const n = new Date();
         document.getElementById('tn-d-center').innerText = Math.max(0, Math.ceil((new Date("2026-06-11") - n) / 86400000));
         document.getElementById('hsa-d-center').innerText = Math.max(0, Math.ceil((new Date("2026-04-05") - n) / 86400000));
 
-        // Load Targets
         ['hsa', 'math', 'physics', 'it'].forEach(id => {
             const el = document.getElementById('target-' + id);
-            if(el) {
-                el.value = db.get('target_' + id, el.value);
-                el.oninput = () => db.save('target_' + id, el.value);
-            }
+            if(el) { el.value = db.get('target_' + id, el.value); el.oninput = () => db.save('target_' + id, el.value); }
         });
 
-        // Search
         document.getElementById('tactical-search').onkeypress = (e) => {
             if (e.key === 'Enter') {
                 const q = e.target.value.trim();
@@ -615,17 +597,11 @@
             }
         };
 
-        renderTodos();
-        drawCal();
-        renderStats();
-        updateSWDisplay();
-        scanVideos(); // Khởi chạy tính năng quét video
-
+        renderTodos(); drawCal(); renderStats(); updateSWDisplay();
         document.getElementById('scratchpad').value = db.get('scratch', '');
         document.getElementById('scratchpad').oninput = (e) => db.save('scratch', e.target.value);
         document.getElementById('quote-display').innerText = db.get('quote', 'KỶ LUẬT LÀ SỨC MẠNH');
 
-        // Subject mark logic
         const subjects = ["Toán Học", "Vật Lý", "Hóa Học", "Tin Học", "Ngữ Văn", "Tiếng Anh"];
         const subMarks = db.get('sub_marks', {});
         const subBox = document.getElementById('subject-log');
@@ -637,7 +613,6 @@
             subBox.appendChild(d);
         });
 
-        // Roadmap
         const road = ["Tư duy định lượng", "Tư duy định tính", "Giải quyết vấn đề", "Tổng ôn Lý 11-12", "Cấu trúc dữ liệu", "Lập trình C++/Python", "Đề luyện HSA 01", "Đề luyện HSA 02", "Tối ưu hóa điểm số", "Chiến thuật phòng thi"];
         const roadMarks = db.get('road_marks', []);
         const roadBox = document.getElementById('roadmap-list');
